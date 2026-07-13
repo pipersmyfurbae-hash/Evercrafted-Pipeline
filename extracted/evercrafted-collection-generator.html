@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evercrafted — Collection Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#FAF8F3; --surf:#F3EEE5; --card:#FFFFFF; --card2:#F8F5EF;
+      --gold:#C4963A; --gold2:#8A6820; --gold3:#FDF0E0;
+      --text:#1A1814; --dim:#8B7350; --dim2:#C4B898;
+      --border:#E4DDD2; --green:#3D6B4A; --radius:5px;
+      --mono:'DM Mono',monospace; --serif:'Cormorant Garamond',serif; --sans:'DM Sans',sans-serif;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:var(--sans); background:var(--bg); color:var(--text); min-height:100vh; }
+    .screen { display:none; min-height:100vh; flex-direction:column; }
+    .screen.active { display:flex; }
+    .hidden { display:none !important; }
+
+    /* ── INPUT ─────────────────────────────────────────── */
+    #s-input { align-items:center; justify-content:center; padding:48px 24px; }
+    .input-wrap { max-width:560px; width:100%; }
+    .brand { font-family:var(--mono); font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--gold); margin-bottom:44px; }
+    .hero-title { font-family:var(--serif); font-size:58px; font-weight:500; line-height:1.0; margin-bottom:14px; }
+    .hero-sub { font-size:13.5px; color:var(--dim); line-height:1.7; margin-bottom:40px; max-width:420px; }
+    .form-lbl { display:block; font-family:var(--mono); font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); margin-bottom:10px; }
+    textarea { width:100%; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-family:var(--sans); font-size:14px; padding:16px; resize:vertical; outline:none; line-height:1.7; transition:border-color .2s; min-height:110px; }
+    textarea:focus { border-color:var(--gold2); }
+    textarea::placeholder { color:var(--dim); opacity:.55; }
+    .gen-btn { margin-top:14px; width:100%; padding:16px; background:var(--gold); border:none; border-radius:var(--radius); color:#FAF8F3; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; cursor:pointer; font-weight:500; transition:opacity .2s; }
+    .gen-btn:hover:not(:disabled) { opacity:.82; }
+    .gen-btn:disabled { opacity:.38; cursor:not-allowed; }
+    .hint { margin-top:14px; font-size:11px; color:var(--dim2); line-height:1.65; }
+    .kbd-hint { font-family:var(--mono); font-size:9px; }
+
+    /* ── LOADING ────────────────────────────────────────── */
+    #s-loading { align-items:center; justify-content:center; }
+    .load-wrap { text-align:center; }
+    .orb { width:44px; height:44px; border-radius:50%; border:1.5px solid var(--border); border-top-color:var(--gold); animation:spin 1.1s linear infinite; margin:0 auto 26px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .load-title { font-family:var(--serif); font-size:22px; font-weight:500; margin-bottom:6px; }
+    .load-sub { font-size:12.5px; color:var(--dim); }
+    .load-phases { margin-top:28px; display:flex; flex-direction:column; gap:6px; align-items:center; }
+    .load-phase { font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim2); opacity:0; transition:opacity .4s; }
+    .load-phase.visible { opacity:1; color:var(--gold2); }
+
+    /* ── ERROR ──────────────────────────────────────────── */
+    #s-error { align-items:center; justify-content:center; padding:40px; }
+    .err-wrap { max-width:480px; text-align:center; }
+    .err-title { font-family:var(--serif); font-size:24px; margin-bottom:10px; color:#C47A7A; }
+    .err-msg { font-size:13px; color:var(--dim); margin-bottom:24px; line-height:1.6; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px; text-align:left; font-family:var(--mono); }
+    .err-raw { font-size:10px; color:var(--dim2); background:var(--card); border:1px solid var(--border); padding:12px; border-radius:var(--radius); text-align:left; margin-top:12px; max-height:180px; overflow-y:auto; white-space:pre-wrap; word-break:break-all; font-family:var(--mono); line-height:1.5; }
+
+    /* ── RESULTS HEADER ─────────────────────────────────── */
+    #s-results { }
+    .results-hdr { padding:22px 32px 18px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; gap:20px; background:var(--bg); flex-shrink:0; }
+    .new-btn { font-family:var(--mono); font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); background:none; border:1px solid var(--border); border-radius:var(--radius); padding:7px 14px; cursor:pointer; white-space:nowrap; margin-top:3px; transition:all .2s; flex-shrink:0; }
+    .new-btn:hover { color:var(--text); border-color:var(--dim); }
+    .results-name-group { flex:1; }
+    .atmo-badge { font-family:var(--mono); font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--gold); margin-bottom:3px; }
+    .results-name { font-family:var(--serif); font-size:28px; font-weight:500; line-height:1.1; margin-bottom:3px; }
+    .results-tagline { font-family:var(--serif); font-style:italic; font-size:13.5px; color:var(--dim); }
+
+    /* ── TABS ───────────────────────────────────────────── */
+    .tab-bar { display:flex; overflow-x:auto; scrollbar-width:none; background:var(--bg); border-bottom:1px solid var(--border); padding:0 32px; flex-shrink:0; }
+    .tab-bar::-webkit-scrollbar { display:none; }
+    .tab-btn { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:12px 18px; background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; color:var(--dim); white-space:nowrap; transition:all .2s; }
+    .tab-btn:hover { color:var(--text); }
+    .tab-btn.active { color:var(--gold); border-bottom-color:var(--gold); }
+    .tab-panels { overflow-y:auto; flex:1; }
+    .panel { display:none; padding:36px; max-width:960px; }
+    .panel.active { display:block; }
+
+    /* ── COMMON COMPONENTS ──────────────────────────────── */
+    .eyebrow { font-family:var(--mono); font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); margin-bottom:16px; }
+    .sec-title { font-family:var(--serif); font-size:20px; font-weight:600; margin-bottom:14px; }
+    .hr { border:none; border-top:1px solid var(--border); margin:26px 0; }
+    .pull { background:var(--card); border-left:3px solid var(--gold); padding:18px 22px; margin-bottom:28px; border-radius:0 var(--radius) var(--radius) 0; }
+    .pull p { font-family:var(--serif); font-style:italic; font-size:17px; line-height:1.67; color:#3A3020; }
+    .note-box { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; font-size:12px; color:var(--dim); line-height:1.6; margin-bottom:16px; }
+    .note-box strong { color:var(--text); font-weight:500; }
+
+    /* ── PALETTE ────────────────────────────────────────── */
+    .pal-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px; }
+    .swatch { flex:1; min-width:90px; border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); }
+    .swatch-color { height:56px; }
+    .swatch-info { background:var(--card); padding:8px 10px; }
+    .sw-name { font-size:11px; font-weight:500; margin-bottom:2px; }
+    .sw-hex { font-family:var(--mono); font-size:9px; color:var(--dim); }
+    .sw-pct { font-family:var(--mono); font-size:9px; color:var(--gold2); }
+
+    /* ── SPEC BLOCK ─────────────────────────────────────── */
+    .spec-block { background:#1A1814; border:1px solid #2A2218; border-radius:var(--radius); margin-bottom:24px; overflow:hidden; }
+    .spec-row { display:flex; gap:14px; padding:10px 16px; border-bottom:1px solid #2A2218; }
+    .spec-row:last-child { border-bottom:none; }
+    .spec-lbl { font-family:var(--mono); font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); min-width:165px; flex-shrink:0; padding-top:1px; }
+    .spec-val { font-family:var(--serif); font-size:14px; color:#CCC0A0; line-height:1.5; }
+
+    /* ── TAGS ───────────────────────────────────────────── */
+    .tag-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:28px; }
+    .tag { font-family:var(--mono); font-size:9px; letter-spacing:.07em; padding:3px 10px; border:1px solid var(--gold2); border-radius:12px; color:var(--gold2); }
+
+    /* ── HIERARCHY ──────────────────────────────────────── */
+    .role-cards { display:flex; flex-direction:column; gap:8px; margin-bottom:24px; }
+    .role-card { background:var(--card); border:1px solid var(--border); border-left:4px solid; border-radius:var(--radius); padding:14px 18px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+    .role-left { flex:1; }
+    .role-tag { font-family:var(--mono); font-size:8px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin-bottom:3px; }
+    .role-name { font-family:var(--serif); font-size:17px; font-weight:600; margin-bottom:3px; }
+    .role-meta { font-size:11.5px; color:var(--dim); line-height:1.55; }
+    .role-price { font-family:var(--mono); font-size:22px; font-weight:500; color:var(--text); flex-shrink:0; padding-top:2px; }
+    .price-bar { background:var(--surf); border:1px solid var(--border); border-radius:var(--radius); padding:16px 22px; display:flex; gap:36px; margin-bottom:28px; flex-wrap:wrap; }
+    .pr-lbl { font-family:var(--mono); font-size:8px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin-bottom:4px; }
+    .pr-val { font-family:var(--mono); font-size:24px; color:var(--gold); }
+
+    /* ── CONTINUITY ─────────────────────────────────────── */
+    .thread-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; margin-bottom:8px; }
+    .thread-name { font-family:var(--serif); font-size:15px; font-weight:600; margin-bottom:4px; color:var(--gold); }
+    .thread-body { font-size:12.5px; color:var(--dim); line-height:1.62; }
+    table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:28px; }
+    th { font-family:var(--mono); font-size:8px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); padding:9px 12px; text-align:left; border-bottom:1px solid var(--border); }
+    td { padding:8px 12px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
+    .ck { color:#5A8A5A; }
+
+    /* ── RELEASE ────────────────────────────────────────── */
+    .timeline { margin-bottom:28px; }
+    .phase-card { border-left:2px solid var(--gold2); padding:4px 0 24px 22px; position:relative; }
+    .phase-card::before { content:''; position:absolute; left:-5px; top:5px; width:8px; height:8px; border-radius:50%; background:var(--gold); }
+    .phase-card:last-child { padding-bottom:0; }
+    .ph-num { font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold2); margin-bottom:3px; }
+    .ph-title { font-family:var(--serif); font-size:18px; font-weight:600; margin-bottom:5px; }
+    .ph-meta { font-size:12px; color:var(--dim); line-height:1.65; margin-top:3px; }
+    .ph-meta b { color:var(--text); font-weight:500; }
+
+    /* ── CROSS-SELL ─────────────────────────────────────── */
+    .sys-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; margin-bottom:8px; }
+    .sys-name { font-family:var(--serif); font-size:15px; font-weight:600; color:var(--gold); margin-bottom:5px; }
+    .sys-flow { font-size:12.5px; color:var(--dim); line-height:1.6; }
+    .bundle-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:28px; }
+    .bundle-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; }
+    .bname { font-family:var(--serif); font-size:15px; font-weight:600; margin-bottom:2px; }
+    .btype { font-family:var(--mono); font-size:8px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); margin-bottom:8px; }
+    .bcontents { font-size:11.5px; color:var(--dim); line-height:1.5; margin-bottom:10px; }
+    .bprice-row { display:flex; align-items:baseline; gap:8px; }
+    .bsum { font-family:var(--mono); font-size:11px; color:var(--dim); text-decoration:line-through; }
+    .bfinal { font-family:var(--mono); font-size:19px; color:var(--gold); font-weight:500; }
+    .bsave { font-family:var(--mono); font-size:9px; color:var(--green); margin-top:3px; }
+
+    /* ── RENDER ─────────────────────────────────────────── */
+    .prompt-block { background:#1A1814; border:1px solid #2A2218; border-radius:var(--radius); overflow:hidden; margin-bottom:16px; }
+    .prompt-hdr { display:flex; align-items:center; justify-content:space-between; padding:10px 15px; border-bottom:1px solid #2A2218; gap:12px; }
+    .prompt-lbl { font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); }
+    .copy-btn { font-family:var(--mono); font-size:9px; letter-spacing:.08em; text-transform:uppercase; padding:5px 12px; background:none; border:1px solid var(--border); color:var(--dim); cursor:pointer; border-radius:3px; transition:all .18s; flex-shrink:0; }
+    .copy-btn:hover { border-color:var(--gold); color:var(--gold); }
+    .copy-btn.copied { border-color:var(--gold); color:var(--gold); }
+    .prompt-txt { font-family:var(--mono); font-size:11px; color:#C8BAA0; padding:16px; line-height:1.75; white-space:pre-wrap; word-break:break-word; }
+    .genome-block { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:13px 16px; margin-bottom:22px; }
+    .genome-lbl { font-family:var(--mono); font-size:8px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin-bottom:5px; }
+    .genome-str { font-family:var(--mono); font-size:10px; color:var(--gold2); word-break:break-all; line-height:1.6; }
+    .merch-ul { list-style:none; margin-bottom:28px; }
+    .merch-ul li { font-size:12.5px; color:var(--dim); padding:8px 0 8px 20px; border-bottom:1px solid var(--border); position:relative; line-height:1.55; }
+    .merch-ul li::before { content:'◦'; position:absolute; left:0; color:var(--gold); }
+
+    /* ── UTIL ───────────────────────────────────────────── */
+    .back-btn { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text); background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:10px 20px; cursor:pointer; transition:all .2s; }
+    .back-btn:hover { border-color:var(--gold); color:var(--gold); }
+    /* ── RENDER REVIEW ──────────────────────────────────── */
+    .upload-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:4px; }
+    .upload-zone { background:var(--card); border:1.5px dashed var(--border); border-radius:var(--radius); min-height:150px; display:flex; align-items:center; justify-content:center; cursor:pointer; text-align:center; transition:border-color .2s; overflow:hidden; position:relative; }
+    .upload-zone:hover { border-color:var(--gold2); }
+    .upload-zone.loaded { border-style:solid; padding:0; }
+    .zone-inner { display:flex; flex-direction:column; align-items:center; gap:6px; padding:20px; }
+    .zone-icon { font-size:22px; color:var(--dim2); }
+    .zone-lbl { font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); }
+    .zone-sub { font-size:11px; color:var(--dim2); }
+    .zone-img { width:100%; height:100%; object-fit:cover; display:block; }
+    .ctx-input { width:100%; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-family:var(--sans); font-size:13px; padding:10px 14px; outline:none; transition:border-color .2s; margin-bottom:0; }
+    .ctx-input:focus { border-color:var(--gold2); }
+    .verdict-banner { border-radius:var(--radius); padding:16px 20px; margin-bottom:24px; display:flex; align-items:flex-start; gap:14px; }
+    .v-advance { background:#E8F5EE; border:.5px solid #3D6B4A; }
+    .v-rerun { background:#FDF1E0; border:.5px solid var(--gold); }
+    .v-icon { font-size:20px; flex-shrink:0; line-height:1.2; }
+    .v-lbl { font-family:var(--mono); font-size:8px; letter-spacing:.14em; text-transform:uppercase; margin-bottom:4px; }
+    .v-lbl-a { color:#1A5A3A; } .v-lbl-r { color:var(--gold2); }
+    .v-stmt { font-family:var(--serif); font-size:17px; font-weight:500; line-height:1.5; }
+    .rv-section { margin-bottom:22px; }
+    .rv-lbl { font-family:var(--mono); font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); margin-bottom:10px; }
+    .ok-list { list-style:none; }
+    .ok-list li { font-size:12.5px; color:#1A1814; padding:6px 0 6px 20px; border-bottom:.5px solid var(--border); position:relative; line-height:1.55; }
+    .ok-list li::before { content:'✓'; position:absolute; left:0; color:var(--green); font-weight:600; }
+    .fix-card { background:#FDF6F0; border:.5px solid var(--gold); border-radius:var(--radius); padding:12px 15px; margin-bottom:8px; }
+    .fix-issue { font-size:12px; font-weight:500; color:var(--gold2); margin-bottom:3px; }
+    .fix-body { font-size:12px; color:#5A4F3E; line-height:1.6; }
+    .adj-card { background:var(--card); border:.5px solid var(--border); border-radius:var(--radius); padding:11px 15px; margin-bottom:7px; }
+    .adj-item { font-size:12px; font-weight:500; color:var(--text); margin-bottom:3px; }
+    .adj-body { font-size:12px; color:var(--dim); line-height:1.6; }
+    .add-block { background:#1A1814; border-radius:var(--radius); overflow:hidden; margin-bottom:8px; }
+    .add-hdr { display:flex; align-items:center; justify-content:space-between; padding:8px 14px; border-bottom:.5px solid #2A2420; }
+    .add-txt { font-family:var(--mono); font-size:10.5px; color:#C8BAA0; padding:13px 14px; line-height:1.75; white-space:pre-wrap; word-break:break-word; }
+    .next-card { background:var(--surf); border:.5px solid var(--border); border-left:3px solid var(--gold); border-radius:0 var(--radius) var(--radius) 0; padding:14px 16px; }
+    .next-body { font-size:13px; color:#3A3020; line-height:1.65; }
+    /* ── RECENT COLLECTIONS (input screen) ─────────────── */
+    .recent-section { margin-top:28px; padding-top:24px; border-top:1px solid var(--border); }
+    .recent-eye { font-family:var(--mono); font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); margin-bottom:10px; }
+    .recent-item { display:flex; align-items:center; justify-content:space-between; background:var(--card); border:.5px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-bottom:7px; cursor:pointer; transition:border-color .2s; }
+    .recent-item:hover { border-color:var(--gold); }
+    .recent-item-name { font-family:var(--serif); font-size:15px; font-weight:500; }
+    .recent-item-action { font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); flex-shrink:0; }
+    /* ── NOTES & SEEDS ──────────────────────────────────── */    .n-name { font-family:var(--serif); font-size:22px; font-weight:500; margin-bottom:20px; color:var(--text); }
+    .n-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .n-input { width:100%; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-family:'DM Mono',monospace; font-size:12px; padding:10px 14px; outline:none; transition:border-color .2s; }
+    .n-input:focus { border-color:var(--gold2); }
+    .n-img-zone { background:var(--card); border:1.5px dashed var(--border); border-radius:var(--radius); min-height:200px; cursor:pointer; display:flex; align-items:center; justify-content:center; overflow:hidden; transition:border-color .2s; }
+    .n-img-zone:hover { border-color:var(--gold2); }
+    .n-img-zone.loaded { border-style:solid; }
+    .save-status { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:14px; min-height:14px; }
+    .save-ok { color:var(--green); }
+    .save-err { color:#C47A7A; }
+    .saved-card { background:var(--card); border:.5px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin-bottom:8px; display:flex; gap:14px; align-items:flex-start; }
+    .saved-thumb { width:64px; height:64px; object-fit:cover; border-radius:3px; flex-shrink:0; }
+    .saved-ph { width:64px; height:64px; background:var(--surf); border-radius:3px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:18px; color:var(--dim2); }
+    .saved-info { flex:1; min-width:0; }
+    .saved-cname { font-family:var(--serif); font-size:16px; font-weight:600; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .saved-meta { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); margin-bottom:3px; }
+    .saved-seed { font-family:'DM Mono',monospace; font-size:10px; color:var(--gold2); }
+    .saved-note-preview { font-size:11.5px; color:var(--dim); margin-top:4px; line-height:1.5; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    @media(max-width:640px) {
+      .hero-title { font-size:40px; } .results-hdr { flex-direction:column; padding:16px 18px; }
+      .panel { padding:22px 18px; } .bundle-grid { grid-template-columns:1fr; }
+      .price-bar { gap:18px; } .spec-lbl { min-width:120px; }
+    }
+
+    /* ── STEP 0 MATERIAL STUDY ──────────────────────────── */
+    .guide-step0 { background:var(--card); border:.5px solid var(--goldBorder,#C4963A); border-radius:var(--radius); padding:18px 20px; margin-bottom:4px; }
+    /* ── RENDER GUIDE TAB ───────────────────────────────── */
+    .guide-nav{display:flex;overflow-x:auto;scrollbar-width:none;gap:6px;margin-bottom:24px;flex-wrap:wrap}
+    .guide-nav::-webkit-scrollbar{display:none}
+    .gnav{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:8px 13px;background:#fff;border:.5px solid #E4DDD2;border-radius:5px;cursor:pointer;color:#8B7350;white-space:nowrap;transition:all .2s}
+    .gnav:hover{color:#1A1814;border-color:#8A6820}
+    .gnav.active{background:#FDF0E0;border-color:#C4963A;color:#8A6820}
+    .gprod-role{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:#8B7350;margin-bottom:4px}
+    .gprod-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;margin-bottom:3px;color:#1A1814}
+    .gprod-form{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8A6820;margin-bottom:16px}
+    .gapproach{font-size:13px;color:#5A4F3E;line-height:1.7;margin-bottom:20px}
+    .ginfo-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+    .ginfo{background:#fff;border:.5px solid #E4DDD2;border-radius:5px;padding:13px 15px}
+    .ginfo-lbl{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:#8B7350;margin-bottom:5px}
+    .ginfo-body{font-size:12px;color:#5A4F3E;line-height:1.65}
+    .gsource{background:#FDF0E0;border:.5px solid #C4963A;border-radius:5px;padding:9px 14px;margin-bottom:18px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8A6820}
+    .gnogen{background:#E8F5EE;border:.5px solid #3D6B4A;border-radius:5px;padding:9px 14px;margin-bottom:18px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#1A3A1A}
+    .gphase{margin-bottom:24px}
+    .gphase-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .gphase-num{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:#C4963A}
+    .gphase-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#1A1814;flex:1}
+    .gtype{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:2px;border:.5px solid}
+    .gt-text{background:#E8F0E8;border-color:#3D6B4A;color:#1A3A1A}
+    .gt-oref{background:#EEE8F5;border-color:#7A5A8A;color:#3A1A5A}
+    .gslots{background:#F3EEE5;border:.5px solid #E4DDD2;border-radius:5px;padding:11px 15px;margin-bottom:10px}
+    .gslot{display:flex;gap:12px;padding:3px 0;border-bottom:.5px solid #E4DDD2}
+    .gslot:last-child{border-bottom:none}
+    .gslot-lbl{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#8B7350;min-width:108px;flex-shrink:0;padding-top:1px}
+    .gslot-val{font-size:11.5px;color:#3A3020;line-height:1.5}
+    .gslot-none{color:#C4B898;font-style:italic;font-size:11.5px}
+    .gslot-param{font-family:'DM Mono',monospace;font-size:10px;color:#C4963A}
+    .gphoto{background:#fff;border:.5px solid #E4DDD2;border-radius:5px;padding:14px 18px;margin-bottom:10px}
+    .gphoto-title{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:#C4963A;margin-bottom:5px}
+    .gphoto-body{font-size:12.5px;color:#5A4F3E;line-height:1.65}
+  
+    /* ── PROMPT KIT TAB ─────────────────────────────────── */
+    .kit-filter{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:24px}
+    .kfbtn{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:7px 14px;background:#fff;border:.5px solid #E4DDD2;border-radius:20px;cursor:pointer;color:#8B7350;transition:all .2s}
+    .kfbtn:hover{border-color:#C4963A;color:#C4963A}
+    .kfbtn.active{background:#FDF0E0;border-color:#C4963A;color:#8A6820}
+    .kit-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+    .kit-card{background:#fff;border:.5px solid #E4DDD2;border-radius:5px;overflow:hidden;display:flex;flex-direction:column}
+    .kit-card-top{padding:14px 16px 10px}
+    .kit-cat{display:inline-block;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:2px;border:.5px solid;margin-bottom:7px}
+    .kc-ribbon{background:#F8EEF5;border-color:#C47AAA;color:#7A3A5A}
+    .kc-greenery{background:#E8F5EE;border-color:#3D7A5A;color:#1A4A2A}
+    .kc-accent{background:#FDF0E0;border-color:#C4963A;color:#8A6820}
+    .kc-fix{background:#FDF5E0;border-color:#C4A03A;color:#7A5A10}
+    .kc-universal{background:#EEE8F5;border-color:#7A5A8A;color:#3A1A5A}
+    .kit-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;margin-bottom:4px;color:#1A1814}
+    .kit-when{font-size:11px;color:#8B7350;line-height:1.5;margin-bottom:0}
+    .kit-slots{display:flex;gap:6px;flex-wrap:wrap;padding:8px 16px;background:#F3EEE5;border-top:.5px solid #E4DDD2;border-bottom:.5px solid #E4DDD2}
+    .kit-slot-tag{font-family:'DM Mono',monospace;font-size:8.5px;color:#8A6820;background:#FDF0E0;border:.5px solid #E4DDD2;padding:2px 7px;border-radius:2px}
+    .kit-prompt{background:#1A1814;flex:1}
+    .kit-phdr{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:.5px solid #2A2420}
+    .kit-plbl{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:#7A6A50}
+    .kit-ptxt{font-family:'DM Mono',monospace;font-size:10px;color:#C8BAA0;padding:12px 14px;line-height:1.75;white-space:pre-wrap;word-break:break-word;flex:1}
+    .kit-fill{color:#C4963A;font-weight:500}
+    @media(max-width:640px){.kit-grid{grid-template-columns:1fr}}
+  
+    /* ── DASHBOARD ──────────────────────────────────────── */
+    #s-input { align-items:flex-start; justify-content:flex-start; padding:0; }
+    .dash-wrap { width:100%; max-width:900px; margin:0 auto; padding:44px 36px 60px; }
+    .dash-hdr { margin-bottom:32px; padding-bottom:28px; border-bottom:1px solid var(--border); }
+    .dash-eyebrow { font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); margin-bottom:8px; }
+    .dash-title { font-family:var(--serif); font-size:42px; font-weight:500; line-height:1.05; margin-bottom:8px; }
+    .dash-sub { font-size:13.5px; color:var(--dim); line-height:1.65; max-width:480px; }
+    .dash-actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:36px; }
+    .daction { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:10px 18px; background:var(--card); border:.5px solid var(--border); border-radius:var(--radius); cursor:pointer; color:var(--dim); transition:all .2s; }
+    .daction:hover { border-color:var(--gold2); color:var(--text); }
+    .daction-primary { background:var(--gold); border-color:var(--gold); color:#FAF8F3; }
+    .daction-primary:hover { opacity:.85; }
+    .dash-section-label { font-family:var(--mono); font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); margin-bottom:16px; }
+    .dash-coll-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:32px; }
+    .dash-coll-empty { font-size:12.5px; color:var(--dim); grid-column:1/-1; padding:20px 0; }
+    .dash-coll-card { background:var(--card); border:.5px solid var(--border); border-radius:var(--radius); overflow:hidden; cursor:pointer; transition:border-color .2s; }
+    .dash-coll-card:hover { border-color:var(--gold2); }
+    .dash-coll-thumb { width:100%; height:120px; object-fit:cover; display:block; }
+    .dash-coll-thumb-ph { width:100%; height:120px; background:var(--surf); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:28px; color:var(--dim2); }
+    .dash-coll-body { padding:12px 14px; }
+    .dash-coll-atmo { font-family:var(--mono); font-size:8px; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin-bottom:3px; }
+    .dash-coll-name { font-family:var(--serif); font-size:16px; font-weight:600; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .dash-coll-pal { display:flex; gap:4px; margin-bottom:6px; }
+    .dash-pal-dot { width:12px; height:12px; border-radius:50%; border:.5px solid rgba(0,0,0,.08); }
+    .dash-coll-restore { font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold2); }
+    .dash-new-wrap { background:var(--card); border:.5px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+    .dash-new-toggle { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; cursor:pointer; transition:background .2s; }
+    .dash-new-toggle:hover { background:var(--surf); }
+    .dash-new-label-txt { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text); }
+    .dash-new-arrow { font-size:12px; color:var(--dim); transition:transform .2s; }
+    .dash-new-arrow.open { transform:rotate(180deg); }
+    .dash-form-inner { display:none; padding:0 18px 18px; }
+    .dash-form-inner.active { display:block; }
+    /* ── COLLECTIONS TAB ─────────────────────────────────── */
+    .coll-browser-empty { font-size:12.5px; color:var(--dim); padding:20px 0; }
+    .coll-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .coll-card { background:var(--card); border:.5px solid var(--border); border-radius:var(--radius); overflow:hidden; cursor:pointer; transition:border-color .2s; }
+    .coll-card:hover { border-color:var(--gold2); }
+    .coll-thumb { width:100%; height:110px; object-fit:cover; display:block; }
+    .coll-thumb-ph { width:100%; height:110px; background:var(--surf); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:26px; color:var(--dim2); }
+    .coll-body { padding:11px 13px; }
+    .coll-atmo { font-family:var(--mono); font-size:8px; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin-bottom:3px; }
+    .coll-name { font-family:var(--serif); font-size:15px; font-weight:600; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .coll-pal { display:flex; gap:4px; margin-bottom:5px; }
+    .coll-pdot { width:11px; height:11px; border-radius:50%; border:.5px solid rgba(0,0,0,.08); }
+    .coll-date { font-family:var(--mono); font-size:9px; color:var(--dim2); margin-bottom:5px; }
+    .coll-restore { font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold2); }
+    @media(max-width:640px) { .dash-coll-grid,.coll-grid { grid-template-columns:1fr 1fr; } .dash-wrap { padding:28px 18px 40px; } }
+  </style>
+</head>
+<body>
+
+<!-- INPUT SCREEN -->
+<div id="s-input" class="screen active">
+  <div class="dash-wrap">
+
+    <div class="dash-hdr">
+      <div class="dash-eyebrow">&#9702; Evercrafted</div>
+      <h1 class="dash-title">Collection Intelligence Studio</h1>
+      <p class="dash-sub">The full design, render, and commerce system for premium faux botanical collections.</p>
+    </div>
+
+    <div class="dash-actions">
+      <button class="daction daction-primary" onclick="toggleDashForm()">+ New Collection</button>
+      <button class="daction" onclick="switchTabByName('review')">Review Render</button>
+      <button class="daction" onclick="switchTabByName('kit')">Prompt Kit</button>
+      <button class="daction" onclick="switchTabByName('guide')">Render Guide</button>
+    </div>
+
+    <div class="dash-section-label" id="dash-coll-label" style="display:none">Saved Collections</div>
+    <div id="dash-coll-grid" class="dash-coll-grid"></div>
+
+    <div class="dash-new-wrap" id="dash-new-wrap">
+      <div class="dash-new-toggle" onclick="toggleDashForm()" id="dash-new-toggle">
+        <span id="dash-new-label">Generate New Collection</span>
+        <span class="dash-new-arrow" id="dash-new-arrow">&#9662;</span>
+      </div>
+      <div class="dash-form-inner active" id="dash-form-inner">
+        <label class="form-lbl" for="brief" style="margin-top:16px;display:block">Collection Brief</label>
+        <textarea id="brief" rows="5" placeholder="e.g. Late winter — the last cold before warmth arrives. Pale greens, aged paper, the weight of something almost finished. Not yet spring, not quite winter."></textarea>
+        <button class="gen-btn" id="gen-btn" onclick="generate()">Generate Collection</button>
+        <p class="hint">Tip: <span class="kbd-hint">Ctrl+Enter</span> or <span class="kbd-hint">&#8984;+Enter</span> &#183; Be as specific or abstract as you like</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- LOADING SCREEN -->
+<div id="s-loading" class="screen">
+  <div class="load-wrap">
+    <div class="orb"></div>
+    <div class="load-title">Building collection intelligence</div>
+    <div class="load-sub">Translating brief into collection architecture</div>
+    <div class="load-phases">
+      <div class="load-phase" id="lp1">◦ Profiling emotional atmosphere</div>
+      <div class="load-phase" id="lp2">◦ Generating palette and signature spec</div>
+      <div class="load-phase" id="lp3">◦ Building 8-product hierarchy</div>
+      <div class="load-phase" id="lp4">◦ Mapping continuity threads</div>
+      <div class="load-phase" id="lp5">◦ Writing MJ V7 render prompt</div>
+    </div>
+  </div>
+</div>
+
+<!-- ERROR SCREEN -->
+<div id="s-error" class="screen">
+  <div class="err-wrap">
+    <div class="err-title">Generation failed</div>
+    <div class="err-msg" id="err-msg">Unknown error. Please try again.</div>
+    <div class="err-raw hidden" id="err-raw"></div>
+    <button class="back-btn" style="margin-top:20px" onclick="showScreen('s-input')">Try again</button>
+  </div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="s-results" class="screen">
+  <div class="results-hdr">
+    <button class="new-btn" onclick="showScreen('s-input');loadRecentOnInput()">+ New Collection</button>
+    <div class="results-name-group">
+      <div class="atmo-badge" id="r-atmo"></div>
+      <div class="results-name" id="r-name"></div>
+      <div class="results-tagline" id="r-tagline"></div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn" onclick="switchTab('collections',this)">Collections</button>
+    <button class="tab-btn active" onclick="switchTab('collection',this)">Collection</button>
+    <button class="tab-btn" onclick="switchTab('hierarchy',this)">Hierarchy</button>
+    <button class="tab-btn" onclick="switchTab('continuity',this)">Continuity</button>
+    <button class="tab-btn" onclick="switchTab('release',this)">Release</button>
+    <button class="tab-btn" onclick="switchTab('crosssell',this)">Cross-Sell</button>
+    <button class="tab-btn" onclick="switchTab('render',this)">Render</button>
+    <button class="tab-btn" onclick="switchTab('review',this)">Render Review</button>
+    <button class="tab-btn" onclick="switchTab('notes',this)">Notes & Seeds</button>
+    <button class="tab-btn" onclick="switchTab('guide',this)">Render Guide</button>
+    <button class="tab-btn" onclick="switchTab('kit',this)">Prompt Kit</button>
+  </div>
+  <div class="tab-panels">
+    <div class="panel" id="p-collections">
+      <div class="eyebrow">All Saved Collections</div>
+      <div id="coll-browser" class="coll-browser-empty">
+        <div class="coll-empty-msg">No collections saved yet. Generate your first collection to begin.</div>
+      </div>
+    </div>
+    <div class="panel active" id="p-collection"></div>
+    <div class="panel" id="p-hierarchy"></div>
+    <div class="panel" id="p-continuity"></div>
+    <div class="panel" id="p-release"></div>
+    <div class="panel" id="p-crosssell"></div>
+    <div class="panel" id="p-render"></div>
+    <div class="panel" id="p-review">
+      <div class="eyebrow">Render Quality Inspector</div>
+      <div class="pull"><p>Upload one or two renders from any phase. The engine evaluates them against Evercrafted standards and tells you exactly what to fix, what to add, and whether to advance or re-run.</p></div>
+      <div class="upload-row">
+        <div class="upload-zone" id="uz1" onclick="document.getElementById('rf1').click()">
+          <input type="file" id="rf1" accept="image/*" style="display:none" onchange="handleUpload(this,'uz1','up1')">
+          <div id="up1" class="zone-inner">
+            <div class="zone-icon">↑</div>
+            <div class="zone-lbl">Render 1</div>
+            <div class="zone-sub">click to upload</div>
+          </div>
+        </div>
+        <div class="upload-zone" id="uz2" onclick="document.getElementById('rf2').click()">
+          <input type="file" id="rf2" accept="image/*" style="display:none" onchange="handleUpload(this,'uz2','up2')">
+          <div id="up2" class="zone-inner">
+            <div class="zone-icon">↑</div>
+            <div class="zone-lbl">Render 2</div>
+            <div class="zone-sub">optional — for comparison</div>
+          </div>
+        </div>
+      </div>
+      <label class="form-lbl" for="rv-ctx" style="margin-top:16px;display:block">Context (optional)</label>
+      <input type="text" id="rv-ctx" class="ctx-input" placeholder="e.g. Phase 3 · The Quiet Hour Wreath · Hero render">
+      <button class="gen-btn" id="rv-btn" onclick="runReview()">Review Render</button>
+      <div id="rv-loading" class="hidden" style="text-align:center;padding:44px 0">
+        <div class="orb" style="margin:0 auto 18px"></div>
+        <div style="font-family:var(--serif);font-size:20px;font-weight:500;margin-bottom:6px">Evaluating render quality</div>
+        <div style="font-size:12.5px;color:var(--dim)">Checking against Evercrafted standards...</div>
+      </div>
+      <div id="rv-results" class="hidden" style="margin-top:28px"></div>
+    </div>
+    <div class="panel" id="p-notes">
+      <div class="eyebrow">Notes & Seeds</div>
+      <div class="save-status" id="n-status"></div>
+      <div class="n-name" id="n-name">Generate a collection to begin</div>
+
+      <div class="n-grid">
+        <div>
+          <label class="form-lbl">Hero Render Seed</label>
+          <input type="text" id="n-hero" class="n-input" placeholder="e.g. 1234567890">
+        </div>
+        <div>
+          <label class="form-lbl">Green Base Seed</label>
+          <input type="text" id="n-base" class="n-input" placeholder="e.g. 0987654321">
+        </div>
+      </div>
+
+      <label class="form-lbl" style="margin-top:18px;display:block">Hero Render Image</label>
+      <div class="n-img-zone" id="n-img-zone" onclick="document.getElementById('n-file').click()">
+        <input type="file" id="n-file" accept="image/*" style="display:none" onchange="handleNoteImg(this)">
+        <div id="n-img-ph" class="zone-inner">
+          <div class="zone-icon">↑</div>
+          <div class="zone-lbl">Upload hero render</div>
+          <div class="zone-sub">stored as reference thumbnail</div>
+        </div>
+        <img id="n-thumb" class="hidden" style="width:100%;height:100%;object-fit:cover;border-radius:4px;display:block">
+      </div>
+
+      <label class="form-lbl" style="margin-top:18px;display:block">Production Notes</label>
+      <textarea id="n-notes" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--sans);font-size:13px;padding:14px;resize:vertical;outline:none;line-height:1.7;transition:border-color .2s;min-height:130px" placeholder="Seeds, phase decisions, fixes applied, what worked, what to avoid next time..."></textarea>
+
+      <button class="gen-btn" onclick="saveNotes()">Save Notes</button>
+
+      <div class="hr" style="margin-top:28px"></div>
+      <div class="eyebrow">Saved Collections</div>
+      <div id="n-saved">
+        <div style="font-size:12px;color:var(--dim)">Loading...</div>
+      </div>
+    </div>
+    <div class="panel" id="p-guide">
+      <div class="eyebrow">Product Render Guide</div>
+      <div class="pull"><p>Run Step 0 first — generate the Material Study Cascade before any product renders. This single image becomes your oref at --ow 180 for all eight products. Then work through the product tabs in order.</p></div>
+
+      <div class="guide-step0" id="guide-step0">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <span style="font-family:var(--mono);font-size:11px;font-weight:500;color:var(--gold)">Step 0</span>
+          <span style="font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text);flex:1">Material Study Cascade</span>
+          <span style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:2px;border:.5px solid;background:#E8F0E8;border-color:#3D6B4A;color:#1A3A1A">TEXT ONLY · --s 30</span>
+        </div>
+        <div style="background:var(--surf);border:.5px solid var(--border);border-radius:var(--radius);padding:11px 15px;margin-bottom:10px">
+          <div style="display:flex;gap:12px;padding:3px 0;border-bottom:.5px solid var(--border)">
+            <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);min-width:108px;flex-shrink:0">Purpose</div>
+            <div style="font-size:11.5px;color:#3A3020">One render · oref for all 8 products at --ow 180 · also your kit listing image</div>
+          </div>
+          <div style="display:flex;gap:12px;padding:3px 0;border-bottom:.5px solid var(--border)">
+            <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);min-width:108px;flex-shrink:0">Parameters</div>
+            <div style="font-size:10px;color:var(--gold);font-family:var(--mono)">--style raw --s 30 --ar 2:3 --v 7</div>
+          </div>
+          <div style="display:flex;gap:12px;padding:3px 0">
+            <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);min-width:108px;flex-shrink:0">After generating</div>
+            <div style="font-size:11.5px;color:#3A3020">Save seed in Notes &amp; Seeds tab · use this render as --oref --ow 180 in every product phase</div>
+          </div>
+        </div>
+        <div class="add-block">
+          <div class="add-hdr">
+            <span class="prompt-lbl">Material Study Cascade Prompt</span>
+            <button class="copy-btn" id="step0-copy-btn" onclick="copyStep0Prompt(this)">Copy</button>
+          </div>
+          <div class="add-txt" id="step0-prompt-text">Generate a collection first — the material study prompt will be built from your collection data.</div>
+        </div>
+        <div style="background:var(--gold3);border:.5px solid var(--gold);border-radius:var(--radius);padding:9px 14px;margin-top:10px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold2)">
+          ◦ Step 0 complete → use this render as --oref [URL] --ow 180 in every product phase below
+        </div>
+      </div>
+
+      <div class="hr" style="margin:20px 0"></div>
+      <div class="guide-nav" id="guide-nav"></div>
+      <div id="guide-content"></div>
+    </div>
+    <div class="panel" id="p-kit">
+      <div class="eyebrow">Prompt Kit</div>
+      <div class="pull"><p>Ready-to-paste prompt templates for common additions and fixes. Copy any card, fill in the bracketed placeholders, and paste into Midjourney. No rebuilding from scratch.</p></div>
+      <div class="kit-filter" id="kit-filter">
+        <button class="kfbtn active" onclick="filterKit('all',this)">All</button>
+        <button class="kfbtn" onclick="filterKit('ribbon',this)">Ribbon</button>
+        <button class="kfbtn" onclick="filterKit('greenery',this)">Greenery</button>
+        <button class="kfbtn" onclick="filterKit('accent',this)">Accents</button>
+        <button class="kfbtn" onclick="filterKit('fix',this)">Fixes</button>
+        <button class="kfbtn" onclick="filterKit('universal',this)">Universal</button>
+      </div>
+      <div class="kit-grid" id="kit-grid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SYSTEM = `You are the Evercrafted Collection Intelligence Engine — the design OS for a luxury faux botanical wreath brand. You generate complete, commercially viable collection packages for premium Etsy and Shopify wreath makers.
+
+OUTPUT FORMAT: Respond with valid JSON only. No markdown fences, no backticks, no preamble, no explanation. Pure JSON.
+
+VOICE: Luxury editorial director. Cinematically specific. Emotionally precise.
+Never: "stunning", "beautiful", "gorgeous", "cozy", "vibrant", "boho", "rustic", "whimsical".
+Never moodboard language. Never generic.
+
+DESIGN RULES:
+- Never include: sunflowers, pussy willow, dried wheat, cherry blossoms
+- No perfect symmetry anywhere
+- Winter/holiday designs MUST include warm LED strand in wreath products
+- All compositions must be physically manufacturable with faux silk and polyester
+- Composition formulas MUST be from this list: Half Ring, Crescent, Side Sweep, Bottom Heavy, Diagonal Flow, Twin Cluster, Corner Cluster, Wild Asymmetry, Top Cluster, Spiral Flow, Classic Balanced, Garden Scatter
+- Atmosphere archetypes MUST be from this list: Quiet Opulence, Weathered Romance, Sacred Warmth, Lingering Autumn, Velvet Stillness, Candlelit Gathering, Garden Memory, Coastal Melancholy, Wild Ceremony, Soft Grandeur, Inherited Beauty, Winter Reverence, Faded Celebration, Untamed Elegance, Gilded Silence, Reverence, Ceremony, Stillness, Tension, Drift, Inheritance, Echo, Sanctuary
+
+PRODUCT HIERARCHY — generate exactly 8 products:
+1. Premium Anchor: garland or complex centerpiece piece, most labor, $225-350
+2. Hero: primary 24-inch door wreath, main product, $145-195
+3. Supporting 1: garland or tablescape ring, $95-165
+4. Supporting 2: coordinating wreath or second garland, $85-155
+5. Gateway: simplified 16-18 inch version of the Hero, $95-135
+6. Atmospheric Filler: candle ring 5-7 inches, $35-55
+7. Accent 1: ribbon bundle or decorative picks, $18-38
+8. Accent 2: second accent object, $18-38
+
+HERO RENDER PROMPT rules (heroRenderPrompt field):
+- Open: "Luxury handcrafted faux botanical wreath, premium artificial silk and polyester florals, home decor product photography"
+- Name ALL materials as artificial, faux, silk, polyester, wire-structured
+- State: "complete circular grapevine ring base forming a full unbroken 24-inch loop"
+- Describe greenery covering "the full ring with varying density"
+- Specify density by clock position and state silence arc
+- Include: "photographed flat against a pale gray painted wall as if hanging on a front door, front-facing camera angle"
+- If winter/holiday: include "integrated warm LED light strand woven through the dense arc with soft warm glow visible"
+- End with: "--no fresh flowers, real plants, live botanicals, organic, dew, wilting, florist, fresh-cut, flat lay, overhead shot, bird's eye view --style raw --s 150 --ar 1:1 --v 7"
+- Total 140-180 words
+
+CONCISENESS RULE: Every string value must be 1-2 sentences maximum. No exceptions. Do not write paragraphs. The JSON must complete within the token budget.
+
+JSON SCHEMA (output this exact structure):
+{
+  "collectionName": "2-4 word poetic name",
+  "tagline": "10-14 word editorial tagline, not generic",
+  "atmosphereArchetype": "from canonical list only",
+  "atmosphereDescription": "2 cinematic sentences, no generic adjectives",
+  "emotionalBrief": "3-4 sentence luxury editorial brief",
+  "palette": [
+    {"name":"poetic color name","hex":"#xxxxxx","role":"dominant","pct":"60%"},
+    {"name":"","hex":"","role":"supporting","pct":"20%"},
+    {"name":"","hex":"","role":"accent","pct":"10%"},
+    {"name":"","hex":"","role":"bridge","pct":"7%"},
+    {"name":"","hex":"","role":"negative","pct":"3%"}
+  ],
+  "signatureSpec": [
+    {"label":"Emotional Atmosphere","value":""},
+    {"label":"Structural Movement","value":""},
+    {"label":"Palette Language","value":""},
+    {"label":"Density Profile","value":""},
+    {"label":"Asymmetry Direction","value":""},
+    {"label":"Texture Language","value":""},
+    {"label":"Composition Formula","value":""},
+    {"label":"Silence Arc","value":""},
+    {"label":"Seasonal Resonance","value":""},
+    {"label":"Emotion Tags","value":"comma-separated tags in quotes"}
+  ],
+  "emotionTags": ["tag1","tag2","tag3","tag4","tag5"],
+  "hierarchy": [
+    {"role":"Premium Anchor","name":"","form":"","formula":"","scale":"","price":0,"keyMaterials":"","notes":""},
+    {"role":"Hero","name":"","form":"","formula":"","scale":"","price":0,"keyMaterials":"","notes":""},
+    {"role":"Supporting","name":"","form":"","formula":"","scale":"","price":0,"keyMaterials":"","notes":""},
+    {"role":"Supporting","name":"","form":"","formula":"","scale":"","price":0,"keyMaterials":"","notes":""},
+    {"role":"Gateway","name":"","form":"","formula":"","scale":"","price":0,"keyMaterials":"","notes":""},
+    {"role":"Atmospheric Filler","name":"","form":"","formula":"","scale":"","price":0,"keyMaterials":"","notes":""},
+    {"role":"Accent","name":"","form":"","formula":"","scale":"","price":0,"keyMaterials":"","notes":""},
+    {"role":"Accent","name":"","form":"","formula":"","scale":"","price":0,"keyMaterials":"","notes":""}
+  ],
+  "priceRange": {"low":0,"high":0,"center":0},
+  "continuity": {
+    "atmosphere": "How atmosphere threads across all 8 products",
+    "palette": "How palette rhythm maintains coherence",
+    "movement": "How movement archetype translates across forms",
+    "texture": "How texture language is consistent",
+    "bridgeTone": "The bridge tone and its role"
+  },
+  "releasePhases": [
+    {"phase":"Phase 1","title":"","timing":"","releases":"","purpose":"","copy":""},
+    {"phase":"Phase 2","title":"","timing":"","releases":"","purpose":"","copy":""},
+    {"phase":"Phase 3","title":"","timing":"","releases":"","purpose":"","copy":""},
+    {"phase":"Phase 4","title":"","timing":"","releases":"","purpose":"","copy":""}
+  ],
+  "crossSell": [
+    {"name":"","flow":""},
+    {"name":"","flow":""},
+    {"name":"","flow":""}
+  ],
+  "bundles": [
+    {"name":"","type":"","contents":"","sum":0,"discount":0.12},
+    {"name":"","type":"","contents":"","sum":0,"discount":0.08},
+    {"name":"","type":"","contents":"","sum":0,"discount":0},
+    {"name":"","type":"","contents":"","sum":0,"discount":0.16}
+  ],
+  "heroRenderPrompt": "full MJ V7 prompt 140-180 words",
+  "heroGenome": "WGS1|24|...",
+  "merchandising": ["note1","note2","note3","note4"]
+}`;
+
+// ── Role border colors ───────────────────────────────────
+const ROLE_COLORS = {
+  'Premium Anchor':'#1A3020','Hero':'#B08D45','Supporting':'#3A2A5A',
+  'Atmospheric Filler':'#1A3A2A','Gateway':'#3A1A28','Accent':'#252018'
+};
+function roleColor(r) { return ROLE_COLORS[r] || ROLE_COLORS['Accent']; }
+
+// ── Screen management ────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── Tab switching ────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.getElementById('p-' + name).classList.add('active');
+  if(name === 'notes') loadSavedList();
+  if(name === 'guide') initGuide();
+  if(name === 'kit') initKit();
+  if(name === 'collections') loadCollectionsBrowser();
+}
+
+// ── Copy helper ──────────────────────────────────────────
+function copyEl(id, btn) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    btn.textContent = 'Copied ✓'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2200);
+  }).catch(() => { btn.textContent = 'Failed'; setTimeout(() => { btn.textContent = 'Copy'; }, 2000); });
+}
+
+// ── Loading phase animation ──────────────────────────────
+let phaseTimer = null;
+function startLoadPhases() {
+  const phases = ['lp1','lp2','lp3','lp4','lp5'];
+  phases.forEach(p => document.getElementById(p).classList.remove('visible'));
+  let i = 0;
+  phaseTimer = setInterval(() => {
+    if(i < phases.length) { document.getElementById(phases[i]).classList.add('visible'); i++; }
+    else clearInterval(phaseTimer);
+  }, 900);
+}
+function stopLoadPhases() { if(phaseTimer) clearInterval(phaseTimer); }
+
+// ── API call ─────────────────────────────────────────────
+async function callAPI(brief) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 8192,
+      system: SYSTEM,
+      messages: [{ role: 'user', content: 'Generate a complete collection intelligence package for this brief: ' + brief }]
+    })
+  });
+  if(!res.ok) throw new Error('API error ' + res.status);
+  const data = await res.json();
+  if(data.stop_reason === 'max_tokens') {
+    throw new Error('Response was cut off (max tokens). Try a shorter or more focused brief.');
+  }
+  const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+  const clean = text.replace(/```json|```/g, '').trim();
+  try { return JSON.parse(clean); }
+  catch(pe) {
+    const e = new Error('JSON parse error — response may have been truncated. Try a shorter brief, or check the console.');
+    e.raw = clean.slice(0,500) + '...';
+    throw e;
+  }
+}
+
+// ── Render helpers ───────────────────────────────────────
+function h(str) {
+  if(!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Tab renderers ────────────────────────────────────────
+function renderCollection(d) {
+  const pal = (d.palette||[]).map(p => `
+    <div class="swatch">
+      <div class="swatch-color" style="background:${h(p.hex)}"></div>
+      <div class="swatch-info"><div class="sw-name">${h(p.name)}</div><div class="sw-hex">${h(p.hex)}</div><div class="sw-pct">${h(p.pct||'')}</div></div>
+    </div>`).join('');
+
+  const spec = (d.signatureSpec||[]).map(s => `
+    <div class="spec-row"><div class="spec-lbl">${h(s.label)}</div><div class="spec-val">${h(s.value)}</div></div>`).join('');
+
+  const tags = (d.emotionTags||[]).map(t => `<span class="tag">${h(t)}</span>`).join('');
+
+  return `
+    <div class="eyebrow">Collection Foundation</div>
+    <div class="pull"><p>${h(d.emotionalBrief||'')}</p></div>
+    <div class="sec-title">Palette Identity</div>
+    <div class="pal-row">${pal}</div>
+    <div class="sec-title">Signature Spec</div>
+    <div class="spec-block">${spec}</div>
+    <div class="eyebrow" style="margin-top:20px">Emotion Tags</div>
+    <div class="tag-row">${tags}</div>`;
+}
+
+function renderHierarchy(d) {
+  const cards = (d.hierarchy||[]).map(item => `
+    <div class="role-card" style="border-left-color:${roleColor(item.role)}">
+      <div class="role-left">
+        <div class="role-tag">${h(item.role)}</div>
+        <div class="role-name">${h(item.name)}</div>
+        <div class="role-meta"><strong>${h(item.form)}</strong> · ${h(item.formula||'—')} · ${h(item.scale)}</div>
+        <div class="role-meta" style="margin-top:4px;font-size:11px;color:var(--dim2)">${h(item.notes||'')}</div>
+      </div>
+      <div class="role-price">$${item.price||'—'}</div>
+    </div>`).join('');
+
+  const pr = d.priceRange || {};
+  return `
+    <div class="eyebrow">Product Hierarchy — ${(d.hierarchy||[]).length} Products</div>
+    <div class="role-cards">${cards}</div>
+    <div class="price-bar">
+      <div><div class="pr-lbl">Price Range</div><div class="pr-val">$${pr.low||'—'} – $${pr.high||'—'}</div></div>
+      <div><div class="pr-lbl">Center of Gravity</div><div class="pr-val">$${pr.center||'—'}</div></div>
+    </div>`;
+}
+
+function renderContinuity(d) {
+  const c = d.continuity || {};
+  const threads = [
+    ['Thread 1 — Atmosphere', c.atmosphere],
+    ['Thread 2 — Palette Rhythm', c.palette],
+    ['Thread 3 — Movement', c.movement],
+    ['Thread 4 — Texture', c.texture],
+    ['Bridge Tone', c.bridgeTone]
+  ].filter(([,v]) => v).map(([n,v]) => `
+    <div class="thread-card"><div class="thread-name">${h(n)}</div><div class="thread-body">${h(v)}</div></div>`).join('');
+
+  const rows = (d.hierarchy||[]).map(item => `
+    <tr><td>${h(item.name)}</td><td class="ck">✅</td><td class="ck">✅</td><td class="ck">✅</td><td class="ck">✅</td></tr>`).join('');
+
+  return `
+    <div class="eyebrow">Emotional Continuity Map</div>
+    ${threads}
+    <div class="hr"></div>
+    <div class="eyebrow">Continuity Audit</div>
+    <table>
+      <thead><tr><th>Product</th><th>Atmosphere</th><th>Palette</th><th>Movement</th><th>Texture</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="note-box"><strong>All threads hold.</strong> Clear to advance to release and merchandising.</div>`;
+}
+
+function renderRelease(d) {
+  const phases = (d.releasePhases||[]).map(p => `
+    <div class="phase-card">
+      <div class="ph-num">${h(p.phase)} · ${h(p.timing)}</div>
+      <div class="ph-title">${h(p.title)}</div>
+      <div class="ph-meta"><b>Releases:</b> ${h(p.releases)}</div>
+      <div class="ph-meta"><b>Purpose:</b> ${h(p.purpose)}</div>
+      <div class="ph-meta"><b>Copy framing:</b> ${h(p.copy)}</div>
+    </div>`).join('');
+
+  return `
+    <div class="eyebrow">Seasonal Release Strategy</div>
+    <div class="timeline">${phases}</div>`;
+}
+
+function renderCrossSell(d) {
+  const sys = (d.crossSell||[]).map(s => `
+    <div class="sys-card"><div class="sys-name">${h(s.name)}</div><div class="sys-flow">${h(s.flow)}</div></div>`).join('');
+
+  const bundles = (d.bundles||[]).map(b => {
+    const disc = b.discount||0;
+    const final = disc > 0 ? Math.round((b.sum||0) * (1 - disc)) : (b.sum||0);
+    const save = (b.sum||0) - final;
+    return `
+      <div class="bundle-card">
+        <div class="bname">${h(b.name)}</div>
+        <div class="btype">${h(b.type)}</div>
+        <div class="bcontents">${h(b.contents)}</div>
+        <div class="bprice-row">
+          ${disc > 0 ? `<span class="bsum">$${b.sum}</span>` : ''}
+          <span class="bfinal">$${final}</span>
+        </div>
+        ${disc > 0 && save > 0 ? `<div class="bsave">Save $${save} (${Math.round(disc*100)}%)</div>` : ''}
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="eyebrow">Room-Level Completion Systems</div>
+    ${sys}
+    <div class="hr"></div>
+    <div class="eyebrow">Bundle Architecture</div>
+    <div class="bundle-grid">${bundles}</div>`;
+}
+
+function renderRender(d) {
+  const prompt = d.heroRenderPrompt || '';
+  const genome = d.heroGenome || '';
+  const merch = (d.merchandising||[]).map(m => `<li>${h(m)}</li>`).join('');
+
+  return `
+    <div class="eyebrow">Hero MJ V7 Render Prompt</div>
+    <div class="note-box"><strong>Faux rules enforced:</strong> Materials named as artificial/silk/polyester throughout. Complete ring structure stated. Wall-mount framing. --no block included.</div>
+    <div class="prompt-block">
+      <div class="prompt-hdr">
+        <span class="prompt-lbl">Phase 2 Hero Prompt — ready to paste</span>
+        <button class="copy-btn" onclick="copyEl('hero-prompt',this)">Copy</button>
+      </div>
+      <div class="prompt-txt" id="hero-prompt">${h(prompt)}</div>
+    </div>
+    ${genome ? `
+    <div class="genome-block">
+      <div class="genome-lbl">WGS Genome String</div>
+      <div class="genome-str">${h(genome)}</div>
+    </div>` : ''}
+    ${merch ? `
+    <div class="eyebrow" style="margin-top:22px">Visual Merchandising Notes</div>
+    <ul class="merch-ul">${merch}</ul>` : ''}`;
+}
+
+// ── Main render ──────────────────────────────────────────
+function renderAll(d) {
+  document.getElementById('r-atmo').textContent = d.atmosphereArchetype || '';
+  document.getElementById('r-name').textContent = d.collectionName || '';
+  document.getElementById('r-tagline').textContent = d.tagline || '';
+  document.getElementById('p-collection').innerHTML = renderCollection(d);
+  document.getElementById('p-hierarchy').innerHTML = renderHierarchy(d);
+  document.getElementById('p-continuity').innerHTML = renderContinuity(d);
+  document.getElementById('p-release').innerHTML = renderRelease(d);
+  document.getElementById('p-crosssell').innerHTML = renderCrossSell(d);
+  document.getElementById('p-render').innerHTML = renderRender(d);
+  // Set up notes panel and Step 0 prompt for this collection
+  document.getElementById('n-name').textContent = d.collectionName || 'Untitled Collection';
+  populateStep0(d);
+  resetNoteState();
+  loadNotes(d.collectionName);
+}
+
+// ── Generate ─────────────────────────────────────────────
+async function generate() {
+  const brief = document.getElementById('brief').value.trim();
+  if(!brief) { document.getElementById('brief').focus(); return; }
+
+  document.getElementById('gen-btn').disabled = true;
+  showScreen('s-loading');
+  startLoadPhases();
+
+  try {
+    const data = await callAPI(brief);
+    stopLoadPhases();
+    renderAll(data);
+    await saveCollData(data);
+
+    // Reset tabs to Collection
+    document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+    document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===0));
+
+    showScreen('s-results');
+  } catch(err) {
+    stopLoadPhases();
+    document.getElementById('err-msg').textContent = err.message || 'Generation failed. Please try again.';
+    const rawEl = document.getElementById('err-raw');
+    if(err.raw) { rawEl.textContent = err.raw; rawEl.classList.remove('hidden'); }
+    showScreen('s-error');
+    console.error(err);
+  } finally {
+    document.getElementById('gen-btn').disabled = false;
+  }
+}
+
+// ── RENDER GUIDE DATA ────────────────────────────────────
+const GUIDE=[
+  {num:1,short:"Hero",name:"The Quiet Hour Wreath",role:"Hero",form:'24" Half Ring',
+   isSource:true,
+   approach:"Your DNA source. Build this first and lock it before anything else. Every other product references this render for style and material consistency.",
+   camera:"Front-facing wall-mount. Pale gray wall. --ar 1:1",
+   watchOuts:["If the LED strand reads as Christmas lights rather than ambient glow, lower --s slightly.","The ribbon trails asymmetrically from 10 o'clock downward — if MJ places it symmetrically, describe it more explicitly as a single trailing drape.","Do not advance to Phase 3 until Phase 2 ranunculus reads as wax-finish and clearly artificial."],
+   phases:[
+    {label:"Green Base",type:"text",typeLbl:"TEXT ONLY",
+     slots:[["Image Prompt",null],["Omni Reference",null],["Style Reference",null],["Parameters","Text only — no image slots, no --iw"]],
+     prompt:"Luxury handcrafted faux botanical wreath, premium artificial silk and polyester greenery, home decor product photography, complete circular grapevine ring base forming a full unbroken 24-inch loop, deep artificial frosted pine and frosted faux eucalyptus covering the full ring with varying density, greenery concentrated across the top half from 8 through 12 to 4 o'clock and sparse from 4 to 8 o'clock with warm grapevine base cleanly exposed from 5 to 7 o'clock, artificial pine boughs with frosted needle tips, semi-gloss polyester eucalyptus leaves, clockwise directional sweep throughout, integrated warm LED light strand woven through the dense upper arc with soft warm glow visible, complete circular ring fully visible, photographed flat against a pale gray painted wall as if hanging on a front door, front-facing camera angle, soft studio daylight from upper left, 85mm editorial e-commerce product photography --no fresh flowers, real plants, live botanicals, organic, dew, wilting, florist, fresh-cut, flat lay, overhead shot, bird's eye view --style raw --s 100 --ar 1:1 --v 7"},
+    {label:"Ivory Wax Ranunculus",type:"oref",typeLbl:"OREF",
+     slots:[["Image Prompt","Phase 1 output · --iw 2.0"],["Omni Reference","Material Study Cascade · --ow 180"],["Style Reference",null],["Parameters","--iw 2.0  --ow 180 · cascade in Omni Ref"]],
+     prompt:"[PHASE-1-OUTPUT-URL] Luxury handcrafted faux botanical wreath, premium artificial silk florals, home decor product photography, complete 24-inch circular grapevine ring, frosted pine and eucalyptus upper arc established, now adding three large ivory wax-finish faux ranunculus blooms each 4 to 5 inches across, fully open dinner-plate scale, dominant focal blooms commanding the upper arc, primary fully open at 11 o'clock, secondary mid-open at 9 o'clock, tertiary smaller at 1 o'clock, matte wax-finish petal texture and silk construction clearly visible, warm amber LED strand glow clearly visible between foliage as distinct warm light points throughout the dense arc, complete circular ring visible, lower arc sparse from 5 to 7 with warm grapevine exposed, photographed flat against pale gray wall front-facing, soft studio daylight upper left, 85mm editorial e-commerce product photography --iw 2.0 --oref [RANUNCULUS-IVORY-URL] --ow 180 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, flat lay, overhead shot, orange berries, amber berries, coral berries --style raw --s 150 --ar 1:1 --v 7"},
+    {label:"Brass Magnolia Pods",type:"oref",typeLbl:"OREF",
+     slots:[["Image Prompt","Phase 2 output · --iw 2.5"],["Omni Reference","Material Study Cascade · --ow 180"],["Style Reference",null],["Parameters","--iw 2.5  --ow 180 · cascade in Omni Ref"]],
+     prompt:"[PHASE-2-OUTPUT-URL] Luxury handcrafted faux botanical wreath, premium artificial silk florals, home decor product photography, complete 24-inch circular ring, three large ivory wax-finish faux ranunculus established at 11, 9, and 1 at dinner-plate scale, now adding three brass-dusted faux magnolia pods anchoring structural weight at 10, 12, and 2 o'clock, pods showing brushed brass-tone artificial finish, pods subordinate in scale to ranunculus but commanding in surface texture, warm amber LED glow between foliage as distinct warm light points, complete ring visible, lower arc from 5 to 7 clear, photographed flat against pale gray wall front-facing, soft studio daylight upper left, 85mm editorial product photography --iw 2.5 --oref [MAGNOLIA-POD-BRASS-URL] --ow 180  --no fresh flowers, real plants, live botanicals, organic, dew, wilting, flat lay, overhead shot, orange berries, amber berries, coral berries --style raw --s 150 --ar 1:1 --v 7"},
+    {label:"Filler + Ribbon Density Pass",type:"text",typeLbl:"TEXT ONLY",
+     slots:[["Image Prompt","Phase 3 output · --iw 3.0"],["Omni Reference",null],["Style Reference",null],["Parameters","--iw 3.0 · No oref — protect accumulated render"]],
+     prompt:"[PHASE-3-OUTPUT-URL] Luxury handcrafted faux botanical wreath, premium artificial florals and accents, home decor product photography, complete 24-inch circular ring, ivory ranunculus and brass magnolia pods established, now filling with scattered ivory wax-finish artificial berry clusters through the dense upper arc, single burgundy velvet ribbon trailing asymmetrically from 10 o'clock down through the quiet lower arc toward 6, ribbon draping naturally with visible velvet texture and soft weight, stems layered and overlapping naturally, full lush coverage from 8 to 4 o'clock with no bare gaps, quiet lower arc remains clear from 5 to 7 with warm grapevine exposed, warm amber LED strand glow clearly visible throughout, complete circular ring fully visible, photographed flat against pale gray wall front-facing, soft studio daylight upper left, 85mm editorial e-commerce product photography --iw 3.0 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, flat lay, overhead shot, bird's eye view --style raw --s 150 --ar 1:1 --v 7"}
+   ]},
+  {num:2,short:"Garland",name:"The Quiet Hour Mantel Garland",role:"Premium Anchor",form:"6ft Linear",
+   approach:"Linear form only — no ring language anywhere in the prompt. Hero Wreath render goes in --sref (not Image Prompt) to transfer palette and material quality without forcing a circular shape.",
+   camera:"Straight-on at mantel height. White painted mantel shelf. Natural front sag and drape. --ar 16:9",
+   watchOuts:["If MJ tries to form a ring or arch shape, remove any ring/loop/circular language from the prompt.","--sref pulls color and material but not form. If garland starts to look like the wreath, lower --sw from 300 to 150.","If the garland renders flat with no sag, add: natural downward drape with visible front sag consistent with garland weight and gravity."],
+   phases:[
+    {label:"Garland Base",type:"text",typeLbl:"TEXT ONLY",
+     slots:[["Image Prompt",null],["Omni Reference",null],["Style Reference",null],["Parameters","Text only — no image slots"]],
+     prompt:"Luxury handcrafted faux botanical mantel garland, premium artificial silk and polyester greenery, home decor product photography, complete 6-foot unbroken linear garland of deep dark green artificial pine stems with fine individual needle strands and silver-white frost on needle tips only not blue not gray throughout, and frosted faux eucalyptus, with full continuous coverage and no bare sections throughout the full length, greenery density concentrated at the center and tapering naturally toward both trailing ends, integrated warm LED light strand woven continuously through the full length with soft warm glow throughout, artificial pine boughs with frosted needle tips, natural downward drape consistent with garland weight and gravity with visible front sag, draped along a white painted mantel shelf, photographed straight-on at mantel height, soft studio daylight from upper left, warm neutral interior background, 85mm editorial e-commerce product photography --no fresh flowers, real plants, live botanicals, organic, dew, wilting, florist, fresh-cut, flat lay, overhead shot, blue pine, gray pine, illustrated --style raw --s 100 --ar 16:9 --v 7"},
+    {label:"Ivory Ranunculus + Hero Style",type:"oref",typeLbl:"OREF + SREF",
+     slots:[["Image Prompt","Phase 1 output · --iw 2.0"],["Omni Reference","Material Study Cascade · --ow 180"],["Style Reference","— Empty (cascade handles style)"],["Parameters","--iw 2.0  --ow 180 · cascade in Omni Ref"]],
+     prompt:"[PHASE-1-GARLAND-URL] Luxury handcrafted faux botanical mantel garland, premium artificial silk florals, home decor product photography, complete 6-foot linear garland, frosted pine and eucalyptus base established, now adding five ivory wax-finish faux ranunculus blooms each 2 to 3 inches in diameter proportionally scaled to sit within the garland volume without dominating, three at center and one at each quarter point along the length, sizes graduating from larger at center to smaller toward trailing ends, matte wax-finish artificial petal texture visible, warm amber LED strand glow as distinct warm light points throughout, two burgundy velvet ribbon trails at each end draping naturally downward, natural sag and gravity along mantel shelf, photographed straight-on at mantel height, soft studio daylight upper left, warm neutral background, 85mm editorial product photography --iw 2.0 --oref [RANUNCULUS-IVORY-URL] --ow 180  --no fresh flowers, real plants, live botanicals, organic, dew, wilting, flat lay, overhead shot, illustrated, painted, blue pine, gray pine, oversized blooms --style raw --s 50 --ar 16:9 --v 7"},
+    {label:"Brass Pods + Filler",type:"oref",typeLbl:"OREF + SREF",
+     slots:[["Image Prompt","Phase 2 output · --iw 2.5"],["Omni Reference","Material Study Cascade · --ow 180"],["Style Reference","— Empty (cascade handles style)"],["Parameters","--iw 2.5  --ow 180 · cascade in Omni Ref"]],
+     prompt:"[PHASE-2-GARLAND-URL] Luxury handcrafted faux botanical mantel garland, premium artificial silk florals, home decor product photography, complete 6-foot linear garland, ivory ranunculus distribution established, now adding four brass-dusted faux magnolia pods anchored at center cluster and at quarter points, ivory wax-finish artificial berry clusters scattered through the full length, pods showing brushed brass artificial finish, stems fully layered and overlapping naturally throughout, complete linear coverage with no bare sections, warm LED glow throughout, one single large burgundy velvet bow with generous full loops positioned off-center at one-third from the left end only, two long velvet ribbon tails draping naturally downward from the bow over the mantel edge, right trailing end has one simple ribbon tail with no bow, natural mantel sag and gravity, white painted mantel shelf, photographed straight-on at mantel height, soft studio daylight upper left, 85mm editorial product photography --iw 2.5 --oref [MAGNOLIA-POD-BRASS-URL] --ow 180  --no fresh flowers, real plants, live botanicals, organic, dew, wilting, flat lay, overhead shot, matching bows at both ends, symmetrical ribbon placement, blue pine, gray pine, illustrated, painted, digital art, oversized blooms --style raw --s 50 --ar 16:9 --v 7"}
+   ]},
+  {num:3,short:"Stair",name:"The Quiet Hour Stair Garland",role:"Supporting",form:'9ft Linear · Directional Ascent',
+   approach:"Phase 1: run the text-only green base prompt. Phase 2: Remix on Phase 1 — add Material Study Cascade to Omni Reference at --ow 180. CRITICAL CONSTRUCTION RULE: the garland drapes over the OUTER FACE of the balustrade with greenery cascading downward on the open side. The rail cap stays clear and functional. Never wrapped tight against the rail. Density heaviest at the newel post base, tapering lighter toward the upper end.",
+   camera:"Camera angled looking down the stair run. Newel post at base of frame, rail rising upward. --ar 4:5",
+   watchOuts:["CONSTRUCTION RULE: garland sits on the OUTER FACE of the balustrade — greenery cascades downward on the open side, rail cap stays clear and usable. If MJ wraps it tight against the rail, add to --no: tightly wrapped banister, garland wrapped around rail, rail obscured by greenery.","Keep --iw at 1.5 — lower than normal to allow the camera angle and directional shift.","If density looks even throughout the length, describe the taper more explicitly."],
+   phases:[
+    {label:"Phase 1 — Green Base",type:"text",typeLbl:"TEXT ONLY",
+        slots:[["Image Prompt",null],["Omni Reference",null],["Style Reference",null],["Parameters","--style raw --s 50 --ar 4:5 --v 7"]],
+        prompt:"Luxury handcrafted faux botanical stair garland, premium artificial silk and polyester greenery, home decor product photography, complete linear garland draped loosely over the outer face of a white painted staircase balustrade, greenery cascading naturally downward on the open exterior side of the staircase with stems and florals hanging toward the stair treads below, rail cap clearly visible above the garland and unobstructed so it remains functional, garland resting along the outer baluster tops with natural gravitational drape on the open side only, deep dark warm green artificial pine stems with fine individual needle strands and silver-white frost on needle tips only not blue not gray not steel, frosted faux eucalyptus with matte silver-sage finish woven through the full length, garland density heaviest at the newel post base and tapering progressively lighter toward the upper end, integrated warm amber LED light strand woven through with soft warm glow visible as distinct light points, white painted staircase with newel post at the base of the frame, photographed from a camera angle showing the full garland draping naturally down the outer balustrade face, soft interior lighting from upper left, 85mm editorial product photography --no fresh flowers, real plants, live botanicals, organic, dew, wilting, flat lay, overhead, blue pine, gray pine, illustrated, painted, tightly wrapped banister, garland wrapped around rail, rail obscured by greenery, garland on inside face of stair, wall-hugging garland, even density throughout --style raw --s 50 --ar 4:5 --v 7"
+      },{label:"Phase 2 — Ranunculus (Remix on Phase 1)",type:"oref",typeLbl:"REMIX + CASCADE",
+        slots:[["Image Prompt","Auto-loaded via Remix button"],["Omni Reference","Material Study Cascade · --ow 180"],["Style Reference",null],["Parameters","--ow 180 --style raw --s 50 --ar 4:5 --v 7"]],
+        prompt:"Luxury handcrafted faux botanical stair garland, premium artificial silk and polyester greenery, home decor product photography, complete linear garland along a white painted staircase handrail, deep dark warm green artificial pine stems with fine individual needle strands and silver-white frost on needle tips only not blue not gray not steel, frosted faux eucalyptus with matte silver-sage finish woven through the full length, garland density heaviest and most concentrated at the newel post base end and tapering progressively lighter toward the upper rail end, five to seven ivory wax-finish faux ranunculus blooms distributed along the full garland length — three fully open blooms each 3 to 4 inches across clustered heavily at the newel post base as the primary focal zone, two mid-open blooms in the mid-section, one to two smaller bud-stage blooms near the upper rail end — bloom size and density tapering naturally from base to top, matte wax-finish artificial petal texture clearly visible, integrated warm amber LED light strand woven through with soft warm glow as distinct light points, rail cap clearly visible and unobstructed above the garland, garland draping naturally down the outer balustrade face on the open side, white painted staircase with newel post at base of frame, photographed showing the full garland cascading down the exterior balustrade face, soft interior lighting from upper left, 85mm editorial product photography --no fresh flowers, real plants, live botanicals, organic, dew, wilting, flat lay, overhead, blue pine, gray pine, illustrated, painted, ball shaped ranunculus, ranunculus smaller than 3 inches, orange berries, amber berries, tightly wrapped banister, rail obscured by greenery, garland on inside wall face --ow 180 --style raw --s 50 --ar 4:5 --v 7"
+      },{label:"Phase 3 — Pods + Berries (Remix on Phase 2)",type:"oref",typeLbl:"REMIX + CASCADE",
+        slots:[["Image Prompt","Auto-loaded via Remix button"],["Omni Reference","Material Study Cascade · --ow 180"],["Style Reference",null],["Parameters","--ow 180 --style raw --s 50 --ar 4:5 --v 7"]],
+        prompt:"Luxury handcrafted faux botanical stair garland, premium artificial silk and polyester greenery, home decor product photography, complete linear garland along a white painted staircase handrail, deep dark warm green artificial pine stems with fine individual needle strands and silver-white frost on needle tips only not blue not gray not steel, frosted faux eucalyptus woven through the full length, garland density heaviest at the newel post base tapering lighter toward upper rail, five to seven ivory wax-finish faux ranunculus blooms with three fully open at the newel post base cluster, brass-dusted faux magnolia pods with brushed brass artificial finish in elongated oval pod form not spherical anchored between the ranunculus, deep burgundy wine artificial berry clusters scattered through the base cluster zone, warm amber LED strand glow as distinct light points throughout, rail cap clearly visible and unobstructed above the garland, garland draping naturally down the outer balustrade face, white painted staircase with newel post at base, photographed showing the full garland cascading down the exterior balustrade face, soft interior lighting from upper left, 85mm editorial product photography --no fresh flowers, real plants, live botanicals, organic, dew, wilting, flat lay, overhead, blue pine, gray pine, illustrated, painted, round spherical magnolia, ball ornaments, orange berries, amber berries, tightly wrapped banister, rail obscured by greenery --ow 180 --style raw --s 50 --ar 4:5 --v 7"
+      },{label:"Phase 4 — Velvet Ribbon (Remix on Phase 3)",type:"text",typeLbl:"REMIX + TEXT",
+        slots:[["Image Prompt","Auto-loaded via Remix button"],["Omni Reference","Material Study Cascade · --ow 180"],["Style Reference",null],["Parameters","--ow 180 --style raw --s 50 --ar 4:5 --v 7"]],
+        prompt:"Luxury handcrafted faux botanical stair garland, premium artificial silk and polyester greenery, home decor product photography, complete linear garland along a white painted staircase handrail, deep dark warm green artificial pine stems with fine individual needle strands and silver-white frost on needle tips only not blue not gray not steel, frosted faux eucalyptus woven through the full length, garland density heaviest at the newel post base tapering lighter toward upper rail, five to seven ivory wax-finish faux ranunculus blooms clustered heaviest at the newel post base, brass-dusted faux magnolia pods and deep burgundy berry clusters established through the base zone, single deep burgundy wine velvet ribbon trailing asymmetrically from the newel post base end with one long tail descending naturally below the handrail with rich velvet texture and soft natural weight, warm amber LED strand glow as distinct light points throughout, rail cap clearly visible and unobstructed above the garland, garland draping naturally down the outer balustrade face, white painted staircase with newel post at base, photographed showing full garland cascading down the exterior balustrade face, soft interior lighting from upper left, 85mm editorial product photography --no fresh flowers, real plants, live botanicals, organic, dew, wilting, flat lay, overhead, blue pine, gray pine, illustrated, painted, round spherical magnolia, orange berries, amber berries, tightly wrapped banister, rail obscured, symmetrical ribbon, matching bows --ow 180 --style raw --s 50 --ar 4:5 --v 7"
+      }
+   ]},
+  {num:4,short:"Table",name:"The Quiet Hour Tablescape Ring",role:"Supporting",form:'14" Ring · Garden Scatter',
+   approach:"The ONLY product where overhead angle is correct — it sits on a table and is seen from above. Garden Scatter formula: blooms distributed evenly around the full 360 degrees, no directional weighting.",
+   camera:"3/4 overhead on a white linen table surface. Three ivory pillar candles at center. --ar 1:1. Do NOT add --no flat lay for this product.",
+   watchOuts:["Do NOT add --no flat lay or overhead shot to this product — overhead is intentional and correct here.","If candles disappear, describe: three ivory pillar candles of graduated heights at the center of the ring.","If MJ puts all ranunculus at one side, add: four ranunculus blooms evenly distributed at 12, 3, 6, and 9 o'clock."],
+   phases:[
+    {label:"Ring Base",type:"text",typeLbl:"TEXT ONLY",
+     slots:[["Image Prompt",null],["Omni Reference",null],["Style Reference",null],["Parameters","Text only — no image slots"]],
+     prompt:"Luxury handcrafted faux botanical centerpiece ring, premium artificial polyester and silk greenery, home decor product photography, complete circular grapevine ring base forming a full unbroken 14-inch loop, deep artificial frosted pine and frosted faux eucalyptus covering the full ring with even radial coverage distributed symmetrically around 360 degrees with no directional weighting, integrated warm LED light strand woven through the ring with soft warm glow visible, ring styled on a white linen table surface surrounding three ivory pillar candles of graduated heights at the center, photographed from a 3/4 overhead angle showing the full ring and candles from above and slightly to the front, soft studio daylight from upper left, 85mm editorial e-commerce product photography --no fresh flowers, real plants, live botanicals, organic, dew, wilting, florist, fresh-cut --style raw --s 100 --ar 1:1 --v 7"},
+    {label:"Radial Florals + Hero Style",type:"oref",typeLbl:"OREF + SREF",
+     slots:[["Image Prompt","Phase 1 output · --iw 2.0"],["Omni Reference","Material Study Cascade · --ow 180"],["Style Reference","— Empty (cascade handles style)"],["Parameters","--iw 2.0  --ow 180 · cascade in Omni Ref"]],
+     prompt:"[PHASE-1-TABLE-URL] Luxury handcrafted faux botanical centerpiece ring, premium artificial silk florals, home decor product photography, complete 14-inch circular ring, frosted pine and eucalyptus radial base established, now adding four ivory wax-finish faux ranunculus blooms distributed evenly at 12, 3, 6, and 9 o'clock positions, slightly graduated sizes for gentle interest but no dominant focal, one brass-dusted faux magnolia pod at 12 as structural accent, ivory wax-finish berry clusters scattered through the arc, LED strand warm glow around the full ring, three ivory pillar candles of graduated heights at center, photographed 3/4 overhead on white linen, soft studio daylight upper left, 85mm editorial product photography --iw 2.0 --oref [RANUNCULUS-IVORY-URL] --ow 180  --no fresh flowers, real plants, live botanicals, organic, dew, wilting, florist --style raw --s 150 --ar 1:1 --v 7"}
+   ]},
+  {num:5,short:"Topper",name:"The Quiet Hour Door Topper",role:"Gateway",form:'16" Half-Ring Arch',
+   approach:"Half-ring arch form with open flat bottom edge — not a full circle. Phase 1 arch base goes in Image Prompt. Hero Wreath goes in --sref only. Two phases maximum, simpler composition than the Hero.",
+   camera:"Front-facing wall-mount. Same pale gray wall as Hero. Arch silhouette should read cleanly. --ar 1:1",
+   watchOuts:["If Hero Wreath is in Image Prompt at high --iw, MJ will try to complete the arch into a full ring. Keep it in --sref only.","Composition is intentionally simpler — one cluster at the arch peak, not three along the full arch.","No velvet ribbon on this product — it is the Gateway entry point."],
+   phases:[
+    {label:"Arch Base",type:"text",typeLbl:"TEXT ONLY",
+     slots:[["Image Prompt",null],["Omni Reference",null],["Style Reference",null],["Parameters","Text only — no image slots"]],
+     prompt:"Luxury handcrafted faux botanical half-wreath door topper, premium artificial polyester and silk greenery, home decor product photography, 16-inch half-ring arch form with an open flat bottom edge and full arched upper structure, deep artificial frosted pine and frosted faux eucalyptus forming the full arch from end to end with complete coverage, integrated warm LED light strand woven through the arch with soft warm glow visible, half-ring arch photographed flat against a pale gray painted wall as a door decoration, front-facing camera angle showing the arch silhouette cleanly, soft studio daylight from upper left, 85mm editorial e-commerce product photography --no fresh flowers, real plants, live botanicals, organic, dew, wilting, florist, fresh-cut, flat lay, overhead shot --style raw --s 100 --ar 1:1 --v 7"},
+    {label:"Simplified Focal Cluster",type:"oref",typeLbl:"OREF + SREF",
+     slots:[["Image Prompt","Phase 1 arch base · --iw 2.0"],["Omni Reference","Ivory ranunculus stock photo · --ow 180"],["Style Reference","— Empty (cascade handles style)"],["Parameters","--iw 2.0  --ow 180 · cascade in Omni Ref"]],
+     prompt:"[PHASE-1-TOPPER-URL] Luxury handcrafted faux botanical half-wreath door topper, premium artificial silk florals, home decor product photography, 16-inch half-ring arch form, frosted pine and eucalyptus arch base established, now adding two ivory wax-finish faux ranunculus blooms and one brass-dusted magnolia pod clustered at the peak of the arch at 12 o'clock only, simpler and more restrained composition than the full Hero Wreath, arch arms clear on both sides, matte wax-finish petal texture visible, single warm LED accent at the cluster, photographed flat against pale gray wall front-facing, soft studio daylight upper left, 85mm editorial product photography --iw 2.0 --oref [RANUNCULUS-IVORY-URL] --ow 180  --no fresh flowers, real plants, live botanicals, organic, dew, wilting, flat lay, overhead shot, orange berries, amber berries, coral berries --style raw --s 150 --ar 1:1 --v 7"}
+   ]},
+  {num:6,short:"Candle",name:"The Quiet Hour Candle Ring",role:"Atmospheric Filler",form:'5" Ring · Micro Scale',
+   approach:"One dominant accent, one secondary, substrate only. At 5 inches MJ renders correctly from text alone — no oref needed. Use --sref at low weight to pull material language from the Hero. Flat-lay is correct here.",
+   camera:"3/4 overhead flat-lay on warm linen. Single ivory pillar candle at center. --ar 1:1. Flat-lay is intentional and correct for this product.",
+   watchOuts:["No LED strand at this scale — remove all LED language from the prompt.","If the ring renders too elaborate, add: small, minimal, and architecturally restrained — no more than one dominant accent and one secondary sprig.","Do NOT add --no flat lay to this product."],
+   phases:[
+    {label:"Candle Ring — Single Phase",type:"text",typeLbl:"TEXT + SREF",
+     slots:[["Image Prompt",null],["Omni Reference",null],["Style Reference","— Empty (cascade handles style)"],["Parameters","--sref [HERO-RENDER] --sw 150 · optional"]],
+     prompt:"Luxury handcrafted faux botanical candle ring, premium artificial polyester and wire construction, home decor product photography, 5-inch circular ring of frost-silver artificial foliage and compact frosted artificial pine substrate with full ring coverage, one brass-dusted faux magnolia pod as the single dominant accent positioned at 12 o'clock, one small frosted artificial eucalyptus sprig at 9 o'clock as secondary, minimal and architecturally restrained, no LED strand at this scale, ring flat-lay styled on a warm ivory linen surface surrounding a single ivory pillar candle at center, photographed from a 3/4 overhead angle showing the full ring and candle, soft studio daylight from upper left, 85mm editorial e-commerce product photography  --no fresh flowers, real plants, live botanicals, organic, dew, wilting, florist, fresh-cut --style raw --s 100 --ar 1:1 --v 7"}
+   ]},
+  {num:7,short:"Ribbon",name:"The Quiet Hour Velvet Ribbon Trio",role:"Accent",form:"Accessory · Photography Only",
+   isPhoto:true,
+   approach:"No MJ generation needed. Three physical ribbons styled for real product photography. The burgundy velvet must read identically to the trailing ribbon in the Hero render.",
+   camera:"Flat-lay, 3/4 overhead, warm linen surface. --ar 1:1 or 4:5. No generation needed.",
+   watchOuts:["Arrange in a loose slightly overlapping fan — show full ribbon body, not folded bows.","Burgundy velvet should match the Hero render ribbon exactly in color and texture.","Hero Wreath visible softly blurred in the background connects the accent to the collection."],
+   photoDirection:[
+    {title:"Background surface",body:"Warm ivory linen or parchment paper. Not white — too clinical. Consistent with the collection's warm material language."},
+    {title:"Product arrangement",body:"Three ribbons: burgundy velvet (widest), brass wire-edge, ivory linen (narrowest). Loose slightly overlapping fan. Show full ribbon body and velvet light-catch."},
+    {title:"Context element",body:"Hero Wreath or corner of Mantel Garland visible soft and slightly blurred in the background. Connects the accent to the collection immediately."},
+    {title:"Camera angle",body:"Flat-lay, 3/4 overhead. Soft daylight from one side. --ar 1:1 or 4:5."}
+   ]},
+  {num:8,short:"Picks",name:"The Quiet Hour Brass Pick Bundle",role:"Accent",form:"Accessory · Photography Only",
+   isPhoto:true,
+   approach:"No MJ generation needed. Three physical picks styled for product photography. Same photographic logic as the Ribbon Trio — maintain visual consistency between both accent products.",
+   camera:"Flat-lay, 3/4 overhead on warm linen. Same daylight direction as all other collection photos. --ar 1:1",
+   watchOuts:["Maintain the same warm linen surface as the Ribbon Trio — they appear near each other in the shop.","Show the full pick wire stem length as well as the head. Do not crop the stems.","Hero Wreath or Candle Ring softly in the background shows buyers what these accent."],
+   photoDirection:[
+    {title:"Background surface",body:"Same warm ivory linen as the Ribbon Trio. Visual consistency matters between both accent products."},
+    {title:"Product arrangement",body:"Three picks at slight angles to each other. Show full wire stem length and head. Not perfectly parallel, not randomly scattered."},
+    {title:"Context element",body:"Hero Wreath or Candle Ring visible softly in the background — shows buyers what these stems accent."},
+    {title:"Camera angle",body:"Flat-lay, 3/4 overhead. Same daylight direction as all other collection photos. --ar 1:1."}
+   ]}
+];
+
+let _guideIdx=0;
+function buildStep0Prompt(data) {
+  if(!data) return null;
+  const name = data.collectionName || 'this collection';
+  const atmo = data.atmosphereArchetype || '';
+  // Extract key materials from the hierarchy
+  const materials = (data.hierarchy||[]).slice(0,4).map(p => p.keyMaterials).filter(Boolean).join(', ');
+  // Get hero product
+  const hero = (data.hierarchy||[]).find(p => p.role && p.role.toLowerCase().includes('hero'));
+  const heroMat = hero ? hero.keyMaterials : '';
+  // Get dominant palette colors
+  const pal = (data.palette||[]).slice(0,3).map(p => p.name).join(', ');
+  return `Luxury handcrafted faux botanical ${name} material cascade, premium artificial silk and polyester florals, asymmetric cascade arrangement 26 to 30 inches, weighted left focal zone, full material hierarchy at maximum, all collection species clearly visible and individually readable — ${materials || heroMat || 'all primary florals, structural accents, and signature greenery'}, palette expressed in ${pal || 'collection palette'} tones — all stems at varying heights and depths with natural overlap and believable faux construction, asymmetric cascade formula weighted toward 8 to 12 o'clock heavier side with ribbon fall descending at base, each material individually legible and clearly separated from adjacent materials, premium artificial silk and polyester construction visible throughout, photographed against pale neutral gray seamless background, front-facing 3/4 view showing full cascade height and width, soft even studio lighting --style raw --s 30 --ar 2:3 --v 7 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, florist arrangement, bouquet construction, gathered stems, flat lay, overhead shot, wreath form, circular arrangement, perfectly symmetrical, illustrated, painted`;
+}
+
+function populateStep0(data) {
+  const el = document.getElementById('step0-prompt-text');
+  if(!el) return;
+  const prompt = buildStep0Prompt(data);
+  if(prompt) el.textContent = prompt;
+}
+
+function copyStep0Prompt(btn) {
+  const el = document.getElementById('step0-prompt-text');
+  if(el) copyStr(el.textContent, btn);
+}
+
+function initGuide(){
+  const nav=document.getElementById("guide-nav");
+  if(!nav||nav.children.length)return;
+  nav.innerHTML=GUIDE.map((p,i)=>
+    `<button class="gnav${i===0?" active":""}" onclick="showGuideProduct(${i},this)">${p.num} · ${p.short}</button>`
+  ).join("");
+  showGuideProduct(0,nav.children[0]);
+}
+function showGuideProduct(idx,btn){
+  _guideIdx=idx;
+  document.querySelectorAll(".gnav").forEach(b=>b.classList.remove("active"));
+  if(btn)btn.classList.add("active");
+  const p=GUIDE[idx];
+  const el=document.getElementById("guide-content");
+  let out=`<div class="gprod-role">${h(p.role)}</div>
+    <div class="gprod-name">${h(p.name)}</div>
+    <div class="gprod-form">${h(p.form)}</div>`;
+  if(p.isSource)out+=`<div class="gsource">◦ DNA Source — build this first · All other products reference this render</div>`;
+  if(p.isPhoto)out+=`<div class="gnogen">◦ No MJ generation — physical product photography</div>`;
+  out+=`<p class="gapproach">${h(p.approach)}</p>
+    <div class="ginfo-row">
+      <div class="ginfo"><div class="ginfo-lbl">Camera &amp; Angle</div><div class="ginfo-body">${h(p.camera)}</div></div>
+      <div class="ginfo"><div class="ginfo-lbl">Watch-Outs</div><div class="ginfo-body">${(p.watchOuts||[]).map(w=>"◦ "+h(w)).join("<br><br>")}</div></div>
+    </div>`;
+  if(p.isPhoto&&p.photoDirection){
+    out+='<div class="hr"></div><div class="eyebrow">Photography Direction</div>';
+    p.photoDirection.forEach(d=>{
+      out+=`<div class="gphoto"><div class="gphoto-title">${h(d.title)}</div><div class="gphoto-body">${h(d.body)}</div></div>`;
+    });
+  }
+  if(!p.isPhoto&&p.phases){
+    out+=`<div class="hr"></div><div class="eyebrow">Phase Stack — ${p.phases.length} Phase${p.phases.length>1?"s":""}</div>`;
+    p.phases.forEach((ph,i)=>{
+      out+=`<div class="gphase"><div class="gphase-hdr">
+        <span class="gphase-num">Phase ${i+1}</span>
+        <span class="gphase-title">${h(ph.label)}</span>
+        <span class="gtype ${ph.type==="oref"?"gt-oref":"gt-text"}">${h(ph.typeLbl)}</span>
+      </div><div class="gslots">`;
+      ph.slots.forEach(([lbl,val])=>{
+        const cls=val?(lbl==="Parameters"?"gslot-param":"gslot-val"):"gslot-none";
+        out+=`<div class="gslot"><div class="gslot-lbl">${h(lbl)}</div><div class="${cls}">${val?h(val):"— Empty"}</div></div>`;
+      });
+      const esc=ph.prompt.replace(/\\/g,"\\\\").replace(/`/g,"\\`");
+      out+=`</div><div class="add-block"><div class="add-hdr">
+        <span class="prompt-lbl">Ready to paste</span>
+        <button class="copy-btn" onclick="copyStr(\`${esc}\`,this)">Copy</button>
+      </div><div class="add-txt">${h(ph.prompt)}</div></div></div>`;
+    });
+  }
+  el.innerHTML=out;
+}
+
+
+// ── PROMPT KIT DATA ───────────────────────────────────────
+const TOOLKIT=[
+  {cat:"ribbon",catLbl:"Ribbon",name:"Off-Center Bow — Garland",
+   when:"Phase 3/4 garland when bow is not rendering or appearing symmetrical at both ends",
+   slots:["Image Prompt: current render · --iw 2.0","No oref","--style raw --s 50 --ar 16:9"],
+   prompt:`[CURRENT-RENDER-URL] Luxury handcrafted faux botanical mantel garland, photorealistic commercial product photography, real photograph not illustrated not painted, all existing composition preserved exactly, now prominently featuring one large [RIBBON COLOR e.g. burgundy] velvet bow with generous full loops positioned off-center at one-third from the [left/right] end of the garland only, bow sitting naturally on the garland surface, two long velvet ribbon tails hanging naturally downward over the mantel shelf edge, rich velvet textile texture clearly visible, right trailing end has one simple ribbon tail with no bow, natural mantel sag and gravity, white painted mantel shelf, photographed straight-on at mantel height, soft studio daylight upper left, 85mm editorial product photography --iw 2.0 --style raw --s 50 --ar 16:9 --v 7 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, flat lay, overhead shot, matching bows at both ends, symmetrical ribbons, illustrated, painted`},
+  {cat:"ribbon",catLbl:"Ribbon",name:"Trailing Ribbon — Wreath",
+   when:"Phase 4 wreath — adding or correcting asymmetric trailing ribbon",
+   slots:["Image Prompt: current render · --iw 2.8","No oref","--style raw --s 100 --ar 1:1"],
+   prompt:`[CURRENT-RENDER-URL] Luxury handcrafted faux botanical wreath, photorealistic commercial product photography, real photograph not illustrated, all existing composition preserved exactly, now adding single [RIBBON COLOR e.g. burgundy] velvet ribbon trailing asymmetrically from [CLOCK POSITION e.g. 10] o'clock downward through the quiet lower arc toward the base, ribbon draping naturally with visible velvet texture and soft weight, photographed flat against pale gray painted wall front-facing, soft studio daylight upper left, 85mm editorial product photography --iw 2.8 --style raw --s 100 --ar 1:1 --v 7 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, flat lay, overhead shot, symmetrical ribbons, illustrated, painted`},
+  {cat:"ribbon",catLbl:"Ribbon",name:"Editor Region Bow",
+   when:"Use in MJ Editor — paint the bow zone, paste this as the region prompt",
+   slots:["No image slots — Editor region prompt only"],
+   prompt:`one large [RIBBON COLOR] velvet bow with generous full loops sitting naturally on the surface, two long velvet ribbon tails draping naturally downward, rich velvet textile texture clearly visible, soft natural drape and weight, not symmetrical, not tight knot, generous loops`},
+  {cat:"greenery",catLbl:"Greenery",name:"Twig / Branch Extension",
+   when:"Any product — extend silhouette past the edge, add skeletal organic structure at trailing ends",
+   slots:["Image Prompt: current render · --iw 2.8","Oref: twig/branch stock photo · --ow 180","--style raw --s 50"],
+   prompt:`[CURRENT-RENDER-URL] Luxury handcrafted faux botanical [wreath / mantel garland], photorealistic commercial product photography, real photograph not illustrated, all existing composition preserved exactly, now adding bare frosted artificial twig branches extending naturally outward and slightly upward past the [trailing ends / lower arc / left side] breaking the silhouette organically, branches woven into the existing stem layer at believable depth, twig tips visible beyond the composition edge, [CAMERA LINE], soft studio daylight upper left, 85mm editorial product photography --iw 2.8 --oref [TWIG-BRANCH-STOCK-URL] --ow 180 --style raw --s 50 --ar [1:1 wreath / 16:9 garland] --v 7 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, illustrated, painted`},
+  {cat:"greenery",catLbl:"Greenery",name:"Extra Eucalyptus Sprays",
+   when:"Any product — add greenery coverage or reinforce directional sweep",
+   slots:["Image Prompt: current render · --iw 2.8","Oref: eucalyptus stock photo · --ow 180","--style raw --s 50"],
+   prompt:`[CURRENT-RENDER-URL] Luxury handcrafted faux botanical [wreath / mantel garland], photorealistic commercial product photography, real photograph not illustrated, all existing composition preserved exactly, now adding [silver dollar / seeded / frosted] artificial eucalyptus sprays extending naturally through [POSITION e.g. the right arc / the trailing ends], sprays woven into the existing greenery layer with natural overlap and believable depth, not disrupting established florals, [CAMERA LINE], soft studio daylight upper left, 85mm editorial product photography --iw 2.8 --oref [EUCALYPTUS-STOCK-URL] --ow 180 --style raw --s 50 --ar [1:1 wreath / 16:9 garland] --v 7 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, illustrated, painted`},
+  {cat:"greenery",catLbl:"Greenery",name:"Dusty Miller / Silver Foliage",
+   when:"Any product — add silver bridging tone or texture contrast to greenery layer",
+   slots:["Image Prompt: current render · --iw 2.8","Oref: dusty miller stock photo · --ow 180","--style raw --s 50"],
+   prompt:`[CURRENT-RENDER-URL] Luxury handcrafted faux botanical [wreath / mantel garland], photorealistic commercial product photography, real photograph not illustrated, all existing composition preserved exactly, now adding silver-tone artificial dusty miller leaves extending naturally into [POSITION], silver foliage bridging the palette and adding texture contrast, woven into the existing stem layer with natural depth, [CAMERA LINE], soft studio daylight upper left, 85mm editorial product photography --iw 2.8 --oref [DUSTY-MILLER-STOCK-URL] --ow 180 --style raw --s 50 --ar [1:1 wreath / 16:9 garland] --v 7 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, illustrated, painted`},
+  {cat:"accent",catLbl:"Accent",name:"Pinecones",
+   when:"Any product — add structural weight and texture, especially winter/holiday",
+   slots:["Image Prompt: current render · --iw 2.8","Oref: pinecone stock photo · --ow 180","--style raw --s 50"],
+   prompt:`[CURRENT-RENDER-URL] Luxury handcrafted faux botanical [wreath / mantel garland], photorealistic commercial product photography, real photograph not illustrated, all existing composition preserved exactly, now adding [brass-dusted / natural / frosted] artificial pinecones of varied sizes with two larger cones anchoring [PRIMARY POSITION e.g. the center cluster] and smaller cones distributed at [SECONDARY POSITION e.g. quarter points], cones integrated naturally into the stem layer with believable wire-pick attachment, [CAMERA LINE], soft studio daylight upper left, 85mm editorial product photography --iw 2.8 --oref [PINECONE-STOCK-URL] --ow 180 --style raw --s 50 --ar [1:1 wreath / 16:9 garland] --v 7 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, illustrated, painted`},
+  {cat:"accent",catLbl:"Accent",name:"Ornament Spheres",
+   when:"Winter/holiday only — subtle matte spheres nested within the floral cluster",
+   slots:["Image Prompt: current render · --iw 2.8","No oref needed","--style raw --s 50"],
+   prompt:`[CURRENT-RENDER-URL] Luxury handcrafted faux botanical [wreath / mantel garland], photorealistic commercial product photography, real photograph not illustrated, all existing composition preserved exactly, now adding [NUMBER e.g. two] matte [COLOR e.g. brass / aged gold / deep burgundy] artificial ornament spheres nestled within [POSITION e.g. the center ranunculus cluster] subordinate in scale to the main florals, ornaments integrated naturally at a slight forward angle to catch light, not dominant not oversized, [CAMERA LINE], soft studio daylight upper left, 85mm editorial product photography --iw 2.8 --style raw --s 50 --ar [1:1 wreath / 16:9 garland] --v 7 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, shiny ornaments, glitter, oversized ornaments, illustrated, painted`},
+  {cat:"accent",catLbl:"Accent",name:"Berry Clusters",
+   when:"Any product — add filler texture and color accent between stems",
+   slots:["Image Prompt: current render · --iw 2.8","Oref: berry stock photo · --ow 180","--style raw --s 50"],
+   prompt:`[CURRENT-RENDER-URL] Luxury handcrafted faux botanical [wreath / mantel garland], photorealistic commercial product photography, real photograph not illustrated, all existing composition preserved exactly, now adding [ivory wax-finish / copper hypericum / deep red] artificial berry clusters scattered naturally through [POSITION e.g. the upper arc / the full garland length], berries nestled between existing stems with believable depth, [CAMERA LINE], soft studio daylight upper left, 85mm editorial product photography --iw 2.8 --oref [BERRY-STOCK-URL] --ow 180 --style raw --s 50 --ar [1:1 wreath / 16:9 garland] --v 7 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, illustrated, painted`},
+  {cat:"fix",catLbl:"Fix",name:"Fix: Painted / Illustrated Look",
+   when:"Render looks AI-generated, illustrated, watercolor, or not photographic",
+   slots:["Image Prompt: current render · --iw 2.5","No oref","--style raw --s 30"],
+   prompt:`[CURRENT-RENDER-URL] Luxury handcrafted faux botanical [wreath / garland], photorealistic commercial product photography, real photograph not illustrated not painted not digital art, all existing composition preserved exactly as established, [CAMERA LINE], soft studio daylight upper left, 85mm editorial product photography --iw 2.5 --style raw --s 30 --ar [1:1 / 16:9] --v 7 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, illustrated, painted, digital art, watercolor, art print`},
+  {cat:"fix",catLbl:"Fix",name:"Fix: Blue / Gray Pine",
+   when:"Pine is rendering blue-gray or steel-colored instead of deep warm green",
+   slots:["Image Prompt: current render · --iw 2.5","No oref","--style raw --s 50"],
+   prompt:`[CURRENT-RENDER-URL] Luxury handcrafted faux botanical [wreath / garland], photorealistic commercial product photography, real photograph not illustrated, all existing composition preserved exactly, deep dark green artificial pine stems with fine individual needle strands and silver-white frost on needle tips only — warm deep green base color throughout not blue not gray not steel, [CAMERA LINE], soft studio daylight upper left, 85mm editorial product photography --iw 2.5 --style raw --s 50 --ar [1:1 / 16:9] --v 7 --no blue pine, gray pine, blue-tinted foliage, steel colored pine, fresh flowers, real plants, illustrated, painted`},
+  {cat:"fix",catLbl:"Fix",name:"Fix: Oversized Florals",
+   when:"Blooms are too large relative to the garland or wreath — dominating the greenery",
+   slots:["Image Prompt: current render · --iw 2.5","No oref","--style raw --s 50"],
+   prompt:`[CURRENT-RENDER-URL] Luxury handcrafted faux botanical [wreath / garland], photorealistic commercial product photography, real photograph not illustrated, all existing composition preserved exactly with florals correctly scaled — [FLOWER TYPE e.g. ranunculus] blooms each [TARGET SIZE e.g. 2 to 3 / 4 to 5] inches in diameter proportionally scaled to sit within the composition volume without dominating the greenery layer, [CAMERA LINE], soft studio daylight upper left, 85mm editorial product photography --iw 2.5 --style raw --s 50 --ar [1:1 / 16:9] --v 7 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, oversized blooms, dominant florals, illustrated, painted`},
+  {cat:"fix",catLbl:"Fix",name:"Fix: Cotton / Fluffy Elements",
+   when:"Cotton bolls, pussy willow, or fluffy white seed heads appearing uninvited",
+   slots:["Image Prompt: current render · --iw 2.5","No oref","--style raw --s 50"],
+   prompt:`[CURRENT-RENDER-URL] Luxury handcrafted faux botanical [wreath / garland], photorealistic commercial product photography, real photograph not illustrated, all existing composition preserved exactly, replace any cotton or fluffy white ball elements with ivory wax-finish artificial berry clusters instead, no cotton no fluffy no round white ball clusters anywhere in the composition, [CAMERA LINE], soft studio daylight upper left, 85mm editorial product photography --iw 2.5 --style raw --s 50 --ar [1:1 / 16:9] --v 7 --no cotton bolls, pussy willow, cotton stems, fluffy white balls, fluffy seed heads, round white ball clusters, fresh flowers, real plants, illustrated, painted`},
+  {cat:"universal",catLbl:"Universal",name:"Master Detail Addition",
+   when:"Any product, any phase — add any single element on the fly. Fill in element description and position.",
+   slots:["Image Prompt: current render · --iw 2.8","Oref: your element stock photo · --ow 150–260","--style raw --s 50"],
+   prompt:`[CURRENT-RENDER-URL] Luxury handcrafted faux botanical [wreath / mantel garland / stair garland], photorealistic commercial product photography, real photograph not illustrated not painted, all existing composition florals and greenery preserved exactly as established, now naturally integrating [DESCRIBE ELEMENT — e.g. bare frosted artificial twig branches / deep green artificial eucalyptus sprays / brass-dusted artificial pinecones] into the existing stem layer at [POSITION — e.g. the trailing ends / the upper arc / one-third from the left], new element woven naturally with believable depth and layering not disrupting the established arrangement, [CAMERA LINE — e.g. photographed flat against pale gray wall front-facing / straight-on at mantel height], soft studio daylight upper left, 85mm editorial product photography --iw 2.8 --oref [ELEMENT-STOCK-PHOTO-URL] --ow [150-260 depending on element — see below] --style raw --s 50 --ar [1:1 wreath / 16:9 garland] --v 7 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, illustrated, painted, [product-specific exclusions]
+
+OW GUIDE: twigs/branches=160 · eucalyptus/greens=220 · pinecones/pods=240 · specific florals=300–380`}
+];
+
+let _kitFilter='all';
+
+function initKit(){
+  if(document.getElementById('kit-grid').children.length) return;
+  renderKit();
+}
+
+function filterKit(cat, btn){
+  _kitFilter=cat;
+  document.querySelectorAll('.kfbtn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderKit();
+}
+
+function renderKit(){
+  const el=document.getElementById('kit-grid');
+  const items=_kitFilter==='all'?TOOLKIT:TOOLKIT.filter(t=>t.cat===_kitFilter);
+  el.innerHTML=items.map((t,i)=>{
+    const idx=TOOLKIT.indexOf(t);
+    const esc=t.prompt.replace(/\\/g,'\\\\').replace(/`/g,'\\`');
+    const slotHtml=t.slots.map(s=>`<span class="kit-slot-tag">${h(s)}</span>`).join('');
+    return `<div class="kit-card">
+      <div class="kit-card-top">
+        <div class="kit-cat kc-${t.cat}">${h(t.catLbl)}</div>
+        <div class="kit-name">${h(t.name)}</div>
+        <div class="kit-when">${h(t.when)}</div>
+      </div>
+      <div class="kit-slots">${slotHtml}</div>
+      <div class="kit-prompt">
+        <div class="kit-phdr">
+          <span class="kit-plbl">Ready to paste — fill in [ ] placeholders</span>
+          <button class="copy-btn" onclick="copyStr(\`${esc}\`,this)">Copy</button>
+        </div>
+        <div class="kit-ptxt">${h(t.prompt)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+// ── DASHBOARD ────────────────────────────────────────────
+function switchTabByName(name) {
+  showScreen('s-results');
+  const btn = document.querySelector(`.tab-btn[onclick*="'${name}'"]`);
+  switchTab(name, btn);
+}
+
+function toggleDashForm() {
+  const inner = document.getElementById('dash-form-inner');
+  const arrow = document.getElementById('dash-new-arrow');
+  const open = inner.classList.contains('active');
+  inner.classList.toggle('active', !open);
+  arrow.classList.toggle('open', !open);
+}
+
+async function loadDashCollections() {
+  const grid = document.getElementById('dash-coll-grid');
+  const label = document.getElementById('dash-coll-label');
+  if(!grid) return;
+  try {
+    const list = await window.storage.list('coll-');
+    if(!list || !list.keys || !list.keys.length) {
+      grid.innerHTML = '';
+      if(label) label.style.display = 'none';
+      return;
+    }
+    if(label) label.style.display = 'block';
+    let html = '';
+    for(const key of list.keys.slice(0,6)) {
+      try {
+        const r = await window.storage.get(key);
+        if(!r) continue;
+        const d = JSON.parse(r.value);
+        let thumb = null;
+        try {
+          const nr = await window.storage.get('notes-' + sk(d.collectionName||''));
+          if(nr) { const nd = JSON.parse(nr.value); thumb = nd.imageThumb; }
+        } catch(e) {}
+        const pal = (d.palette||[]).slice(0,5).map(p=>`<div class="dash-pal-dot" style="background:${p.hex||'#ccc'}"></div>`).join('');
+        const safeKey = key.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        html += `<div class="dash-coll-card" onclick="restoreCollection('${safeKey}')">
+          ${thumb ? `<img class="dash-coll-thumb" src="${thumb}">` : `<div class="dash-coll-thumb-ph">&#9702;</div>`}
+          <div class="dash-coll-body">
+            <div class="dash-coll-atmo">${h(d.atmosphereArchetype||'')}</div>
+            <div class="dash-coll-name">${h(d.collectionName||'')}</div>
+            <div class="dash-coll-pal">${pal}</div>
+            <div class="dash-coll-restore">Restore &#8594;</div>
+          </div>
+        </div>`;
+      } catch(e) {}
+    }
+    grid.innerHTML = html || '<div class="dash-coll-empty">No collections saved yet.</div>';
+  } catch(e) { grid.innerHTML = ''; }
+}
+
+async function loadCollectionsBrowser() {
+  const el = document.getElementById('coll-browser');
+  if(!el) return;
+  try {
+    const list = await window.storage.list('coll-');
+    if(!list || !list.keys || !list.keys.length) {
+      el.innerHTML = '<div class="coll-browser-empty">No collections saved yet. Generate your first collection to begin.</div>';
+      return;
+    }
+    let html = '<div class="coll-grid">';
+    for(const key of list.keys) {
+      try {
+        const r = await window.storage.get(key);
+        if(!r) continue;
+        const d = JSON.parse(r.value);
+        let thumb = null;
+        try {
+          const nr = await window.storage.get('notes-' + sk(d.collectionName||''));
+          if(nr) { const nd = JSON.parse(nr.value); thumb = nd.imageThumb; }
+        } catch(e) {}
+        const pal = (d.palette||[]).slice(0,5).map(p=>`<div class="coll-pdot" style="background:${p.hex||'#ccc'}"></div>`).join('');
+        const date = d.savedAt ? new Date(d.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+        const safeKey = key.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        html += `<div class="coll-card" onclick="restoreCollection('${safeKey}')">
+          ${thumb ? `<img class="coll-thumb" src="${thumb}">` : `<div class="coll-thumb-ph">&#9702;</div>`}
+          <div class="coll-body">
+            <div class="coll-atmo">${h(d.atmosphereArchetype||'')}</div>
+            <div class="coll-name">${h(d.collectionName||'')}</div>
+            <div class="coll-pal">${pal}</div>
+            <div class="coll-date">${h(date)}</div>
+            <div class="coll-restore">Restore &#8594;</div>
+          </div>
+        </div>`;
+      } catch(e) {}
+    }
+    html += '</div>';
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div class="coll-browser-empty">Could not load collections.</div>';
+  }
+}
+
+// ── Keyboard shortcut ────────────────────────────────────
+document.getElementById('brief').addEventListener('keydown', e => {
+  if((e.ctrlKey || e.metaKey) && e.key === 'Enter') generate();
+});
+
+// ── Collection Data Persistence ──────────────────────────
+function sk(name) {
+  // Sanitize name into a valid storage key — no spaces, quotes, or slashes
+  return name.replace(/[\s\/\\'"`]/g,'-').replace(/-+/g,'-').toLowerCase().slice(0,140);
+}
+
+async function saveCollData(data) {
+  try {
+    const brief = document.getElementById('brief') ? document.getElementById('brief').value : '';
+    const enriched = Object.assign({}, data, { savedAt: new Date().toISOString(), brief });
+    const key = 'coll-' + sk(data.collectionName);
+    await window.storage.set(key, JSON.stringify(enriched));
+    await window.storage.set('last-coll', key);
+    loadDashCollections();
+  } catch(e) {
+    console.error('saveCollData failed:', e);
+  }
+}
+
+async function restoreCollection(key) {
+  try {
+    const r = await window.storage.get(key);
+    if(!r) { alert('Collection data not found.'); return; }
+    const data = JSON.parse(r.value);
+    renderAll(data);
+    document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+    document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===0));
+    showScreen('s-results');
+    loadDashCollections();
+  } catch(e) { alert('Could not restore collection.'); console.error(e); }
+}
+
+async function loadRecentOnInput() {
+  const el = document.getElementById('recent-list');
+  if(!el) return;
+  try {
+    const list = await window.storage.list('coll-');
+    if(!list || !list.keys || !list.keys.length) { el.innerHTML = ''; return; }
+    let html = '<div class="recent-section"><div class="recent-eye">Saved collections</div>';
+    for(const key of list.keys.slice(0,6)) {
+      try {
+        const r = await window.storage.get(key);
+        if(!r) continue;
+        const d = JSON.parse(r.value);
+        const safe = key.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        html += `<div class="recent-item" onclick="restoreCollection('${safe}')">
+          <span class="recent-item-name">${h(d.collectionName||key)}</span>
+          <span class="recent-item-action">Restore →</span>
+        </div>`;
+      } catch(e) {}
+    }
+    html += '</div>';
+    el.innerHTML = html;
+  } catch(e) { el.innerHTML = ''; }
+}
+
+async function init() {
+  try {
+    const last = await window.storage.get('last-coll');
+    if(last && last.value) {
+      const stored = await window.storage.get(last.value);
+      if(stored) {
+        const data = JSON.parse(stored.value);
+        renderAll(data);
+        document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+        document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===0));
+        showScreen('s-results');
+        return;
+      }
+    }
+  } catch(e) {}
+  showScreen('s-input');
+  loadRecentOnInput();
+  loadDashCollections();
+}
+
+init();
+
+// ── RENDER REVIEW ─────────────────────────────────────────
+const REVIEW_SYSTEM = `You are the Evercrafted Render Quality Inspector — an expert evaluator of luxury faux botanical wreath renders for premium e-commerce brands.
+
+Evaluate the uploaded render image(s) against Evercrafted standards. If two images are provided, compare both.
+
+OUTPUT FORMAT: Valid JSON only. No markdown. No preamble. Pure JSON.
+
+EVALUATE EACH CRITERION:
+
+RING FORM: Is there a complete, unbroken, three-dimensional circular grapevine ring visible? Does it read as a proper door wreath form?
+
+FAUX QUALITY: Do materials read as premium artificial silk and polyester (faux = correct) or as fresh organic botanicals (fresh/organic = problem)? Faux indicators: consistent color, preserved matte petals, slight leaf sheen, visible wire structure. Fresh indicators: organic variation, dew drops, soft wilted edges, florist arrangement quality.
+
+FOCAL HIERARCHY: Is there a clear dominant primary bloom commanding the composition? Are secondary elements clearly subordinate? Is there a readable primary-secondary-filler progression?
+
+SILENCE ARC: Is there intentional negative space or exposed grapevine in a quiet zone? Does the composition breathe? Or is every inch covered with equal density (problem)?
+
+DENSITY: Is the active arc lushly covered with no unintended bare gaps where florals should be present?
+
+COMPOSITION FORMULA: Does the layout follow an intentional asymmetric formula (Half Ring, Crescent, Diagonal) or is it a centered symmetrical blob? Asymmetry and intentional weighting = good. Perfect symmetry or bouquet cluster = problem.
+
+DIRECTIONAL FLOW: Does the greenery sweep consistently in one direction? Does the composition have visual momentum and movement?
+
+MATERIAL TEXTURE: Is silk petal texture, wax-finish surface, brushed metallic, or artificial construction visible at an appropriate quality level?
+
+CAMERA: For door wreaths — front-facing wall-mount photography = correct. Flat-lay or overhead = problem. Is the background appropriate (pale gray or neutral wall)?
+
+LED GLOW: If winter or holiday context — is warm amber LED strand glow visible as distinct warm light points between foliage?
+
+RIBBON: If a velvet ribbon is present — is it trailing naturally with visible velvet texture? Is placement asymmetric and elegant?
+
+VERDICT: "advance" = render meets Evercrafted standard, ready for next phase. "re-run" = critical issues must be addressed before advancing.
+
+JSON SCHEMA:
+{
+  "overallVerdict": "advance|re-run",
+  "verdictStatement": "1-2 sentence direct editorial verdict — specific, never generic",
+  "whatsWorking": ["specific observation","specific observation"],
+  "criticalFixes": [{"issue":"specific problem","fix":"exact actionable fix"}],
+  "adjustments": [{"item":"element to adjust","suggestion":"specific how-to"}],
+  "promptAdditions": ["exact paste-ready language to add to the next MJ prompt"],
+  "phaseRecommendation": "Which phase to run next and exactly why — or what to correct before re-running this phase"
+}
+
+Be direct. Name the exact issue and the exact fix. Never say beautiful, stunning, or gorgeous.`;
+
+function fileToBase64(file) {
+  return new Promise((resolve,reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function handleUpload(input, zoneId, previewId) {
+  const file = input.files[0];
+  if(!file) return;
+  const zone = document.getElementById(zoneId);
+  const preview = document.getElementById(previewId);
+  const url = URL.createObjectURL(file);
+  preview.innerHTML = `<img class="zone-img" src="${url}" alt="Render">`;
+  zone.classList.add('loaded');
+}
+
+async function runReview() {
+  const f1 = document.getElementById('rf1').files[0];
+  const f2 = document.getElementById('rf2').files[0];
+  const ctx = document.getElementById('rv-ctx').value.trim();
+  if(!f1) { alert('Upload at least one render image.'); return; }
+  document.getElementById('rv-btn').disabled = true;
+  document.getElementById('rv-loading').classList.remove('hidden');
+  document.getElementById('rv-results').classList.add('hidden');
+  try {
+    const contents = [];
+    const b1 = await fileToBase64(f1);
+    contents.push({type:'image',source:{type:'base64',media_type:f1.type,data:b1}});
+    if(f2) {
+      const b2 = await fileToBase64(f2);
+      contents.push({type:'image',source:{type:'base64',media_type:f2.type,data:b2}});
+      contents.push({type:'text',text:'Two renders provided above — evaluate and compare both.'});
+    }
+    if(ctx) contents.push({type:'text',text:`Context: ${ctx}`});
+    contents.push({type:'text',text:'Review this wreath render against Evercrafted standards. Return structured JSON feedback only.'});
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:REVIEW_SYSTEM,messages:[{role:'user',content:contents}]})
+    });
+    if(!res.ok) throw new Error('API error '+res.status);
+    const data = await res.json();
+    const text = data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    const clean = text.replace(/```json|```/g,'').trim();
+    renderReview(JSON.parse(clean));
+  } catch(err) {
+    const el = document.getElementById('rv-results');
+    el.innerHTML = `<div class="note-box"><strong>Review failed:</strong> ${h(err.message||'Unknown error')}</div>`;
+    el.classList.remove('hidden');
+    console.error(err);
+  } finally {
+    document.getElementById('rv-btn').disabled = false;
+    document.getElementById('rv-loading').classList.add('hidden');
+  }
+}
+
+function renderReview(f) {
+  const adv = f.overallVerdict === 'advance';
+  let out = `<div class="verdict-banner ${adv?'v-advance':'v-rerun'}">
+    <div class="v-icon">${adv?'✓':'◐'}</div>
+    <div><div class="v-lbl ${adv?'v-lbl-a':'v-lbl-r'}">${adv?'Advance to next phase':'Re-run this phase'}</div>
+    <div class="v-stmt">${h(f.verdictStatement||'')}</div></div></div>`;
+  if(f.whatsWorking?.length){
+    out+=`<div class="rv-section"><div class="rv-lbl">What's Working</div><ul class="ok-list">`;
+    f.whatsWorking.forEach(w=>{out+=`<li>${h(w)}</li>`;});
+    out+=`</ul></div>`;
+  }
+  if(f.criticalFixes?.length){
+    out+=`<div class="rv-section"><div class="rv-lbl">Critical Fixes</div>`;
+    f.criticalFixes.forEach(x=>{out+=`<div class="fix-card"><div class="fix-issue">${h(x.issue)}</div><div class="fix-body">${h(x.fix)}</div></div>`;});
+    out+=`</div>`;
+  }
+  if(f.adjustments?.length){
+    out+=`<div class="rv-section"><div class="rv-lbl">Adjustments</div>`;
+    f.adjustments.forEach(a=>{out+=`<div class="adj-card"><div class="adj-item">${h(a.item)}</div><div class="adj-body">${h(a.suggestion)}</div></div>`;});
+    out+=`</div>`;
+  }
+  if(f.promptAdditions?.length){
+    out+=`<div class="rv-section"><div class="rv-lbl">Add to Next Prompt</div>`;
+    f.promptAdditions.forEach((add,i)=>{
+      const esc = add.replace(/\\/g,'\\\\').replace(/`/g,'\\`');
+      out+=`<div class="add-block"><div class="add-hdr"><span class="prompt-lbl">Addition ${i+1}</span>
+        <button class="copy-btn" onclick="copyStr(\`${esc}\`,this)">Copy</button></div>
+        <div class="add-txt">${h(add)}</div></div>`;
+    });
+    out+=`</div>`;
+  }
+  if(f.phaseRecommendation){
+    out+=`<div class="rv-section"><div class="rv-lbl">Next Step</div><div class="next-card"><div class="next-body">${h(f.phaseRecommendation)}</div></div></div>`;
+  }
+  const el = document.getElementById('rv-results');
+  el.innerHTML = out;
+  el.classList.remove('hidden');
+}
+
+function copyStr(text, btn) {
+  navigator.clipboard.writeText(text).catch(()=>{});
+  btn.textContent = 'Copied ✓'; btn.classList.add('ok');
+  setTimeout(()=>{ btn.textContent='Copy'; btn.classList.remove('ok'); }, 2200);
+}
+
+// ── NOTES & SEEDS ─────────────────────────────────────────let _noteThumb = null;
+
+function resetNoteState() {
+  _noteThumb = null;
+  document.getElementById('n-hero').value = '';
+  document.getElementById('n-base').value = '';
+  document.getElementById('n-notes').value = '';
+  const thumb = document.getElementById('n-thumb');
+  thumb.src = ''; thumb.classList.add('hidden');
+  document.getElementById('n-img-ph').classList.remove('hidden');
+  document.getElementById('n-img-zone').classList.remove('loaded');
+  setNoteStatus('', '');
+}
+
+function setNoteStatus(msg, type) {
+  const el = document.getElementById('n-status');
+  el.textContent = msg;
+  el.className = 'save-status' + (type ? ' save-' + type : '');
+}
+
+async function handleNoteImg(input) {
+  const file = input.files[0];
+  if(!file) return;
+  _noteThumb = await resizeToBase64(file, 500);
+  const thumb = document.getElementById('n-thumb');
+  thumb.src = _noteThumb; thumb.classList.remove('hidden');
+  document.getElementById('n-img-ph').classList.add('hidden');
+  document.getElementById('n-img-zone').classList.add('loaded');
+}
+
+function resizeToBase64(file, maxPx) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const scale = Math.min(maxPx / img.width, maxPx / img.height, 1);
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * scale);
+      c.height = Math.round(img.height * scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.src = url;
+  });
+}
+
+async function saveNotes() {
+  const name = document.getElementById('n-name').textContent;
+  if(!name || name === 'Generate a collection to begin') {
+    alert('Generate a collection first.'); return;
+  }
+  const data = {
+    name,
+    savedAt: new Date().toISOString(),
+    heroSeed: document.getElementById('n-hero').value.trim(),
+    baseSeed: document.getElementById('n-base').value.trim(),
+    notes: document.getElementById('n-notes').value,
+    imageThumb: _noteThumb || null
+  };
+  try {
+    await window.storage.set('notes-' + sk(name), JSON.stringify(data));
+    setNoteStatus('Saved ✓', 'ok');
+    loadSavedList();
+  } catch(e) {
+    setNoteStatus('Save failed', 'err');
+    console.error(e);
+  }
+}
+
+async function loadNotes(name) {
+  if(!name) return;
+  try {
+    const result = await window.storage.get('notes-' + sk(name));
+    if(result) {
+      const d = JSON.parse(result.value);
+      document.getElementById('n-hero').value = d.heroSeed || '';
+      document.getElementById('n-base').value = d.baseSeed || '';
+      document.getElementById('n-notes').value = d.notes || '';
+      if(d.imageThumb) {
+        _noteThumb = d.imageThumb;
+        const thumb = document.getElementById('n-thumb');
+        thumb.src = d.imageThumb; thumb.classList.remove('hidden');
+        document.getElementById('n-img-ph').classList.add('hidden');
+        document.getElementById('n-img-zone').classList.add('loaded');
+      }
+      setNoteStatus('Notes loaded ✓', 'ok');
+    }
+  } catch(e) { /* no notes yet — fine */ }
+}
+
+async function loadSavedList() {
+  const el = document.getElementById('n-saved');
+  try {
+    const list = await window.storage.list('notes-');
+    if(!list || !list.keys || !list.keys.length) {
+      el.innerHTML = '<div style="font-size:12px;color:var(--dim);padding:6px 0">No saved collections yet.</div>';
+      return;
+    }
+    let html = '';
+    for(const key of list.keys) {
+      try {
+        const r = await window.storage.get(key);
+        if(!r) continue;
+        const d = JSON.parse(r.value);
+        const date = new Date(d.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        html += `<div class="saved-card">
+          ${d.imageThumb
+            ? `<img class="saved-thumb" src="${d.imageThumb}" alt="${h(d.name)}">`
+            : `<div class="saved-ph">◦</div>`}
+          <div class="saved-info">
+            <div class="saved-cname">${h(d.name)}</div>
+            <div class="saved-meta">${date}</div>
+            ${d.heroSeed ? `<div class="saved-seed">Hero · ${h(d.heroSeed)}</div>` : ''}
+            ${d.baseSeed ? `<div class="saved-seed">Base · ${h(d.baseSeed)}</div>` : ''}
+            ${d.notes ? `<div class="saved-note-preview">${h(d.notes.slice(0,80))}${d.notes.length>80?'…':''}</div>` : ''}
+          </div>
+        </div>`;
+      } catch(e) {}
+    }
+    el.innerHTML = html || '<div style="font-size:12px;color:var(--dim)">No saved collections yet.</div>';
+  } catch(e) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--dim)">Could not load saved collections.</div>';
+  }
+}
+</script>
+</body>
+</html>

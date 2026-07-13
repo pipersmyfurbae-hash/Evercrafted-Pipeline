@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ec-white: #FFFFFF;
+  --ec-off-white: #F9F7F4;
+  --ec-paper: #F2EFE9;
+  --ec-black: #1A1A1A;
+  --ec-charcoal: #2E2E2E;
+  --ec-ink: #4A4A4A;
+  --ec-green: #4A6741;
+  --ec-green-light: #6B8F67;
+  --ec-green-pale: #EEF2ED;
+  --ec-gold: #C4963A;
+  --ec-gold-dim: #8A6820;
+  --ec-gold-pale: #FDF0E0;
+  --ec-border: #E8E8E8;
+  --ec-border-dark: #D0D0D0;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-script: 'Dancing Script', cursive;
+  --font-mono: 'DM Mono', monospace;
+}
+
+body { font-family: var(--font-inter, sans-serif); }
+.font-serif { font-family: var(--font-serif); }
+.font-script { font-family: var(--font-script); }
+.font-mono { font-family: var(--font-mono); }
