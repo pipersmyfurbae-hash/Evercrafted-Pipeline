@@ -135,6 +135,12 @@ All eight products in the collection use these exact weights. Do not adjust per-
 
 ## Troubleshooting
 
+**"Ranunculus are rendering as garden roses or peonies in the collage"**
+MJ defaults to roses when it sees large multi-petal white florals. The cascade prompt must include: "ranunculus petal structure only with 40 to 60 paper-thin concentric petals in tight spiral rings and flat open center, distinctly NOT roses NOT peonies NOT garden roses" — and add `roses, peonies, garden roses` to the `--no` list. Lower `--s` to 20 so MJ reads materials clinically rather than stylizing.
+
+**"Magnolia pods are rendering as round gold balls or ornaments"**
+MJ defaults to spheres/ornaments when it sees gold + pod-adjacent language. The cascade prompt must include: "elongated teardrop shape 2 to 3 inches long with pointed tip and brushed antique brass finish on textured surface, NOT round NOT spherical NOT ornament-shaped" — and add `round pods, gold balls, ornaments, jingle bells, spherical pods` to the `--no` list.
+
 **"The oref is pulling the floral collage shape into my wreath"**
 Lower `--ow`. You've crossed from material-reading into shape-copying. Drop by 30 and re-run.
 
