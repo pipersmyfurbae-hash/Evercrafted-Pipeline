@@ -1,401 +1,195 @@
 <title>Weight Calibration Studio — Evercrafted</title>
 <style>
 :root {
-  --bg: #FAF8F3;
-  --surface: #FFFFFF;
-  --surface-2: #F3EEE5;
-  --surface-3: #EDE7D8;
-  --border: #E4DDD2;
-  --border-strong: #C8BAA0;
-  --text: #1A1814;
-  --text-2: #5A4F3E;
-  --text-3: #8A7142;
-  --accent: #C4963A;
-  --accent-bg: #FDF1E0;
-  --accent-bg-2: #F5E4C0;
-  --prompt-bg: #16140F;
-  --prompt-text: #C8BAA0;
-  --prompt-border: #2A2520;
-  --prompt-label: #6A5A40;
-  --ok-bg: #E8F0E8;
-  --ok-border: #3D6B4A;
-  --ok-text: #1A3A1A;
+  --bg: #FAF8F3; --surface: #FFFFFF; --surface-2: #F3EEE5; --surface-3: #EDE7D8;
+  --border: #E4DDD2; --border-strong: #C8BAA0; --text: #1A1814; --text-2: #5A4F3E;
+  --text-3: #8A7142; --accent: #C4963A; --accent-bg: #FDF1E0; --accent-bg-2: #F5E4C0;
+  --prompt-bg: #16140F; --prompt-text: #C8BAA0; --prompt-border: #2A2520; --prompt-label: #6A5A40;
+  --ok-bg: #E8F0E8; --ok-border: #3D6B4A; --ok-text: #1A3A1A;
+  --warn-bg: #F5EEE0; --warn-border: #C4963A; --warn-text: #5A3A10;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #131210;
-    --surface: #1C1A16;
-    --surface-2: #231F18;
-    --surface-3: #2C2720;
-    --border: #363020;
-    --border-strong: #4A4030;
-    --text: #EDE7D8;
-    --text-2: #B0A080;
-    --text-3: #9A8252;
-    --accent: #D4A84A;
-    --accent-bg: #241E10;
-    --accent-bg-2: #302512;
-    --prompt-bg: #0D0C09;
-    --prompt-text: #C8BAA0;
-    --prompt-border: #242018;
-    --prompt-label: #5A4A30;
-    --ok-bg: #0F1E12;
-    --ok-border: #2D5038;
-    --ok-text: #7AAA7A;
+    --bg: #131210; --surface: #1C1A16; --surface-2: #231F18; --surface-3: #2C2720;
+    --border: #363020; --border-strong: #4A4030; --text: #EDE7D8; --text-2: #B0A080;
+    --text-3: #9A8252; --accent: #D4A84A; --accent-bg: #241E10; --accent-bg-2: #302512;
+    --prompt-bg: #0D0C09; --prompt-text: #C8BAA0; --prompt-border: #242018; --prompt-label: #5A4A30;
+    --ok-bg: #0F1E12; --ok-border: #2D5038; --ok-text: #7AAA7A;
+    --warn-bg: #1E1608; --warn-border: #D4A84A; --warn-text: #C4963A;
   }
 }
 :root[data-theme="light"] {
   --bg: #FAF8F3; --surface: #FFFFFF; --surface-2: #F3EEE5; --surface-3: #EDE7D8;
   --border: #E4DDD2; --border-strong: #C8BAA0; --text: #1A1814; --text-2: #5A4F3E;
   --text-3: #8A7142; --accent: #C4963A; --accent-bg: #FDF1E0; --accent-bg-2: #F5E4C0;
-  --prompt-bg: #16140F; --prompt-text: #C8BAA0; --prompt-border: #2A2520;
-  --prompt-label: #6A5A40; --ok-bg: #E8F0E8; --ok-border: #3D6B4A; --ok-text: #1A3A1A;
+  --prompt-bg: #16140F; --prompt-text: #C8BAA0; --prompt-border: #2A2520; --prompt-label: #6A5A40;
+  --ok-bg: #E8F0E8; --ok-border: #3D6B4A; --ok-text: #1A3A1A;
+  --warn-bg: #F5EEE0; --warn-border: #C4963A; --warn-text: #5A3A10;
 }
 :root[data-theme="dark"] {
   --bg: #131210; --surface: #1C1A16; --surface-2: #231F18; --surface-3: #2C2720;
   --border: #363020; --border-strong: #4A4030; --text: #EDE7D8; --text-2: #B0A080;
   --text-3: #9A8252; --accent: #D4A84A; --accent-bg: #241E10; --accent-bg-2: #302512;
-  --prompt-bg: #0D0C09; --prompt-text: #C8BAA0; --prompt-border: #242018;
-  --prompt-label: #5A4A30; --ok-bg: #0F1E12; --ok-border: #2D5038; --ok-text: #7AAA7A;
+  --prompt-bg: #0D0C09; --prompt-text: #C8BAA0; --prompt-border: #242018; --prompt-label: #5A4A30;
+  --ok-bg: #0F1E12; --ok-border: #2D5038; --ok-text: #7AAA7A;
+  --warn-bg: #1E1608; --warn-border: #D4A84A; --warn-text: #C4963A;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 15px; }
-body {
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  line-height: 1.6;
-}
+body { font-family: system-ui,-apple-system,'Segoe UI',sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6; }
 
 /* HEADER */
-.hdr {
-  position: sticky; top: 0; z-index: 20;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  padding: 0 32px;
-}
-.hdr-top {
-  display: flex; align-items: baseline; gap: 14px;
-  padding: 18px 0 14px;
-}
-.hdr-eyebrow {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
-  color: var(--text-3);
-}
-.hdr-title {
-  font-family: Georgia,'Palatino Linotype',serif;
-  font-size: 20px; font-weight: normal; letter-spacing: -.01em;
-}
-.hdr-badge {
-  margin-left: auto;
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
-  padding: 3px 9px;
-  border: .5px solid var(--accent);
-  color: var(--accent); background: var(--accent-bg);
-  border-radius: 2px;
-}
-.phase-rail {
-  display: flex; gap: 0;
-}
-.phase-tab {
-  display: flex; align-items: center; gap: 9px;
-  padding: 10px 24px 10px 0;
-  background: none; border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer; transition: all .2s;
-  color: var(--text-3);
-}
+.hdr { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0 32px; }
+.hdr-top { display: flex; align-items: baseline; gap: 14px; padding: 18px 0 14px; }
+.hdr-eyebrow { font-family: ui-monospace,'SF Mono',monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-3); }
+.hdr-title { font-family: Georgia,'Palatino Linotype',serif; font-size: 20px; font-weight: normal; letter-spacing: -.01em; }
+.hdr-badge { margin-left: auto; font-family: ui-monospace,'SF Mono',monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 3px 9px; border: .5px solid var(--accent); color: var(--accent); background: var(--accent-bg); border-radius: 2px; }
+.phase-rail { display: flex; }
+.phase-tab { display: flex; align-items: center; gap: 9px; padding: 10px 24px 10px 0; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: all .2s; color: var(--text-3); }
 .phase-tab:first-child { padding-left: 0; }
 .phase-tab.active { border-bottom-color: var(--accent); color: var(--accent); }
 .phase-tab.done { border-bottom-color: var(--ok-border); color: var(--ok-border); }
 .phase-tab.locked { opacity: .35; cursor: not-allowed; pointer-events: none; }
-.ph-num {
-  width: 20px; height: 20px; border-radius: 50%;
-  border: 1px solid currentColor;
-  display: flex; align-items: center; justify-content: center;
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 9px; font-weight: 600; flex-shrink: 0;
-}
-.ph-lbl {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
-}
+.ph-num { width: 20px; height: 20px; border-radius: 50%; border: 1px solid currentColor; display: flex; align-items: center; justify-content: center; font-family: ui-monospace,'SF Mono',monospace; font-size: 9px; font-weight: 600; flex-shrink: 0; }
+.ph-lbl { font-family: ui-monospace,'SF Mono',monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
 
 /* MAIN */
 .main { max-width: 860px; margin: 0 auto; padding: 40px 32px 100px; }
-
-/* PHASE PANELS */
 .phase-panel { display: none; }
 .phase-panel.active { display: block; }
 
 /* SECTION HEADER */
 .sec-head { margin-bottom: 32px; }
-.sec-title {
-  font-family: Georgia,'Palatino Linotype',serif;
-  font-size: 28px; font-weight: normal;
-  text-wrap: balance; line-height: 1.2; margin-bottom: 8px;
-}
-.sec-sub {
-  font-size: 13px; color: var(--text-2); line-height: 1.65; max-width: 580px;
-}
+.sec-title { font-family: Georgia,'Palatino Linotype',serif; font-size: 26px; font-weight: normal; text-wrap: balance; line-height: 1.2; margin-bottom: 8px; }
+.sec-sub { font-size: 13px; color: var(--text-2); line-height: 1.65; max-width: 580px; }
 
 /* SOURCE CARDS */
 .sources { display: flex; flex-direction: column; gap: 20px; }
-.src-card {
-  border: .5px solid var(--border);
-  border-radius: 4px; background: var(--surface); overflow: hidden;
-}
-.src-card-head {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 20px;
-  background: var(--surface-2);
-  border-bottom: .5px solid var(--border);
-}
-.src-tag {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase;
-  padding: 2px 7px; border: .5px solid var(--border-strong);
-  color: var(--text-3); border-radius: 2px; flex-shrink: 0;
-}
-.src-name {
-  font-family: Georgia,'Palatino Linotype',serif;
-  font-size: 16px; font-weight: normal;
-}
-.src-param {
-  margin-left: auto;
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 10px; color: var(--accent); font-weight: 600;
-}
+.src-card { border: .5px solid var(--border); border-radius: 4px; background: var(--surface); overflow: hidden; }
+.src-card-head { display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: var(--surface-2); border-bottom: .5px solid var(--border); }
+.src-tag { font-family: ui-monospace,'SF Mono',monospace; font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; padding: 2px 7px; border: .5px solid var(--border-strong); color: var(--text-3); border-radius: 2px; flex-shrink: 0; }
+.src-tag.required { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+.src-name { font-family: Georgia,'Palatino Linotype',serif; font-size: 16px; font-weight: normal; }
+.src-param { margin-left: auto; font-family: ui-monospace,'SF Mono',monospace; font-size: 10px; color: var(--accent); font-weight: 600; }
 .src-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
 .src-desc { font-size: 12.5px; color: var(--text-2); line-height: 1.65; }
-.src-note {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 9px; letter-spacing: .06em; line-height: 1.6;
-  color: var(--text-3);
-  background: var(--surface-2);
-  border-left: 2px solid var(--border-strong);
-  padding: 8px 12px;
-  border-radius: 0 2px 2px 0;
-}
+.src-note { font-family: ui-monospace,'SF Mono',monospace; font-size: 9px; letter-spacing: .04em; line-height: 1.6; color: var(--text-3); background: var(--surface-2); border-left: 2px solid var(--border-strong); padding: 8px 12px; border-radius: 0 2px 2px 0; }
 
 /* PROMPT BLOCKS */
-.prompt-block {
-  background: var(--prompt-bg); border-radius: 4px; overflow: hidden;
-}
-.pb-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 14px;
-  border-bottom: .5px solid var(--prompt-border);
-}
-.pb-lbl {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 8px; letter-spacing: .14em; text-transform: uppercase;
-  color: var(--prompt-label);
-}
-.copy-btn {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 8px; letter-spacing: .08em; text-transform: uppercase;
-  padding: 3px 9px; background: none;
-  border: .5px solid var(--prompt-border);
-  color: var(--prompt-label);
-  cursor: pointer; border-radius: 2px; transition: all .18s;
-}
+.prompt-block { background: var(--prompt-bg); border-radius: 4px; overflow: hidden; }
+.pb-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; border-bottom: .5px solid var(--prompt-border); }
+.pb-lbl { font-family: ui-monospace,'SF Mono',monospace; font-size: 8px; letter-spacing: .14em; text-transform: uppercase; color: var(--prompt-label); }
+.copy-btn { font-family: ui-monospace,'SF Mono',monospace; font-size: 8px; letter-spacing: .08em; text-transform: uppercase; padding: 3px 9px; background: none; border: .5px solid var(--prompt-border); color: var(--prompt-label); cursor: pointer; border-radius: 2px; transition: all .18s; }
 .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
 .copy-btn.ok { border-color: var(--accent); color: var(--accent); }
-.pb-text {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 10px; color: var(--prompt-text);
-  padding: 12px 14px; line-height: 1.75;
-  white-space: pre-wrap; word-break: break-all;
-}
+.pb-text { font-family: ui-monospace,'SF Mono',monospace; font-size: 10px; color: var(--prompt-text); padding: 12px 14px; line-height: 1.75; white-space: pre-wrap; word-break: break-all; }
 
 /* URL INPUT */
 .url-row { display: flex; align-items: center; gap: 10px; }
-.url-lbl {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase;
-  color: var(--text-3); white-space: nowrap; flex-shrink: 0;
-}
-.url-input {
-  flex: 1; background: var(--surface-2);
-  border: .5px solid var(--border); border-radius: 3px;
-  padding: 7px 10px;
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 10px; color: var(--text);
-  outline: none; transition: border-color .18s;
-}
+.url-lbl { font-family: ui-monospace,'SF Mono',monospace; font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); white-space: nowrap; flex-shrink: 0; }
+.url-input { flex: 1; background: var(--surface-2); border: .5px solid var(--border); border-radius: 3px; padding: 7px 10px; font-family: ui-monospace,'SF Mono',monospace; font-size: 10px; color: var(--text); outline: none; transition: border-color .18s; }
 .url-input::placeholder { color: var(--text-3); }
 .url-input:focus { border-color: var(--accent); }
 .url-input.has-url { border-color: var(--ok-border); }
 
-/* NEXT BUTTON */
-.next-btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  margin-top: 28px; padding: 10px 22px;
-  background: var(--accent); color: #1A1410;
-  border: none; border-radius: 3px;
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
-  font-weight: 700; cursor: pointer; transition: opacity .18s;
-}
+/* BUTTONS */
+.next-btn { display: inline-flex; align-items: center; gap: 8px; margin-top: 28px; padding: 10px 22px; background: var(--accent); color: #1A1410; border: none; border-radius: 3px; font-family: ui-monospace,'SF Mono',monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; cursor: pointer; transition: opacity .18s; }
 .next-btn:hover { opacity: .85; }
 .next-btn:disabled { opacity: .35; cursor: not-allowed; }
 
-/* VARIANT GRID */
+/* FLOOR TEST CARDS */
+.floor-grid { display: flex; flex-direction: column; gap: 16px; }
+.floor-card { border: .5px solid var(--border); border-radius: 4px; background: var(--surface); overflow: hidden; transition: border-color .2s; }
+.floor-card.pass { border-color: var(--ok-border); }
+.floor-card.fail { border-color: var(--border); opacity: .7; }
+.floor-card-top { display: grid; grid-template-columns: 52px 1fr; align-items: stretch; }
+.floor-ow { display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--surface-2); border-right: .5px solid var(--border); padding: 16px 8px; gap: 2px; transition: background .2s; }
+.floor-card.pass .floor-ow { background: var(--ok-bg); }
+.floor-ow-val { font-family: Georgia,'Palatino Linotype',serif; font-size: 22px; font-weight: normal; color: var(--text-3); line-height: 1; font-variant-numeric: tabular-nums; }
+.floor-card.pass .floor-ow-val { color: var(--ok-border); }
+.floor-ow-lbl { font-family: ui-monospace,'SF Mono',monospace; font-size: 7px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+.floor-meta { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+.floor-desc { font-size: 12.5px; color: var(--text-2); line-height: 1.4; }
+.floor-question { font-family: ui-monospace,'SF Mono',monospace; font-size: 10px; letter-spacing: .06em; color: var(--text); }
+.pass-fail-row { display: flex; gap: 8px; }
+.pf-btn { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border: .5px solid var(--border); border-radius: 2px; background: var(--surface-2); cursor: pointer; font-family: ui-monospace,'SF Mono',monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-2); transition: all .15s; user-select: none; }
+.pf-btn:hover { border-color: var(--border-strong); }
+.pf-btn.sel-pass { background: var(--ok-bg); border-color: var(--ok-border); color: var(--ok-text); }
+.pf-btn.sel-fail { background: var(--surface-3); border-color: var(--border-strong); color: var(--text-3); }
+.floor-card-body { padding: 12px 16px; border-top: .5px solid var(--border); }
+.floor-prompt-toggle { display: flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer; font-family: ui-monospace,'SF Mono',monospace; font-size: 8.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); padding: 0; transition: color .15s; }
+.floor-prompt-toggle:hover { color: var(--accent); }
+.toggle-arrow { transition: transform .2s; display: inline-block; }
+.toggle-arrow.open { transform: rotate(90deg); }
+.fp-wrap { display: none; }
+.fp-wrap.open { display: block; margin-top: 8px; }
+
+/* FLOOR RESULT BANNER */
+.floor-result { padding: 16px 20px; border-radius: 4px; margin-top: 24px; }
+.floor-result.found { background: var(--ok-bg); border: .5px solid var(--ok-border); }
+.floor-result.not-found { background: var(--warn-bg); border: .5px solid var(--warn-border); }
+.fr-label { font-family: ui-monospace,'SF Mono',monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 4px; }
+.floor-result.found .fr-label { color: var(--ok-border); }
+.floor-result.not-found .fr-label { color: var(--warn-text); }
+.fr-value { font-family: Georgia,'Palatino Linotype',serif; font-size: 22px; font-weight: normal; }
+.floor-result.found .fr-value { color: var(--ok-text); }
+.floor-result.not-found .fr-value { color: var(--warn-text); font-size: 14px; font-style: italic; }
+
+/* FULL VARIANT GRID */
 .variant-grid { display: flex; flex-direction: column; gap: 14px; }
-.v-card {
-  border: .5px solid var(--border);
-  border-radius: 4px; background: var(--surface); overflow: hidden;
-  transition: border-color .2s, box-shadow .2s;
-}
-.v-card.winner {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
-}
-.v-card-top {
-  display: grid;
-  grid-template-columns: 52px 1fr 72px;
-  align-items: stretch;
-}
-.v-letter {
-  display: flex; align-items: center; justify-content: center;
-  font-family: Georgia,'Palatino Linotype',serif;
-  font-size: 28px; font-weight: normal; font-style: italic;
-  color: var(--text-3);
-  background: var(--surface-2);
-  border-right: .5px solid var(--border);
-  padding: 16px 0;
-  transition: all .2s;
-}
+.v-card { border: .5px solid var(--border); border-radius: 4px; background: var(--surface); overflow: hidden; transition: border-color .2s, box-shadow .2s; }
+.v-card.winner { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.v-card-top { display: grid; grid-template-columns: 52px 1fr 72px; align-items: stretch; }
+.v-letter { display: flex; align-items: center; justify-content: center; font-family: Georgia,'Palatino Linotype',serif; font-size: 28px; font-weight: normal; font-style: italic; color: var(--text-3); background: var(--surface-2); border-right: .5px solid var(--border); padding: 16px 0; transition: all .2s; }
 .v-card.winner .v-letter { color: var(--accent); background: var(--accent-bg); }
-.v-meta {
-  padding: 13px 16px; display: flex; flex-direction: column;
-  justify-content: center; gap: 5px;
-}
+.v-meta { padding: 13px 16px; display: flex; flex-direction: column; justify-content: center; gap: 5px; }
 .v-desc { font-size: 12px; color: var(--text-2); line-height: 1.4; }
 .v-weights { display: flex; gap: 14px; flex-wrap: wrap; }
-.wt {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 10px; color: var(--text-3);
-  font-variant-numeric: tabular-nums;
-}
+.wt { font-family: ui-monospace,'SF Mono',monospace; font-size: 10px; color: var(--text-3); font-variant-numeric: tabular-nums; }
 .wt b { color: var(--accent); font-weight: 600; }
-.v-score {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  border-left: .5px solid var(--border);
-  padding: 0 16px; gap: 1px;
-}
-.v-score-n {
-  font-family: Georgia,'Palatino Linotype',serif;
-  font-size: 30px; font-weight: normal;
-  color: var(--text-3); line-height: 1;
-  font-variant-numeric: tabular-nums;
-  transition: color .2s;
-}
+.wt.locked-ow { color: var(--ok-text); }
+.wt.locked-ow b { color: var(--ok-border); }
+.v-score { display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: .5px solid var(--border); padding: 0 16px; gap: 1px; }
+.v-score-n { font-family: Georgia,'Palatino Linotype',serif; font-size: 30px; font-weight: normal; color: var(--text-3); line-height: 1; font-variant-numeric: tabular-nums; transition: color .2s; }
 .v-card.winner .v-score-n { color: var(--accent); }
-.v-score-d {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 8px; color: var(--text-3); letter-spacing: .08em;
-}
-.v-card-body {
-  padding: 12px 16px; display: flex; flex-direction: column; gap: 10px;
-  border-top: .5px solid var(--border);
-}
+.v-score-d { font-family: ui-monospace,'SF Mono',monospace; font-size: 8px; color: var(--text-3); letter-spacing: .08em; }
+.v-card-body { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; border-top: .5px solid var(--border); }
 .criteria-row { display: flex; gap: 7px; flex-wrap: wrap; }
-.crit {
-  display: flex; align-items: center; gap: 5px;
-  padding: 5px 11px; cursor: pointer;
-  border: .5px solid var(--border);
-  border-radius: 2px; background: var(--surface-2);
-  user-select: none; transition: all .15s;
-}
+.crit { display: flex; align-items: center; gap: 5px; padding: 5px 11px; cursor: pointer; border: .5px solid var(--border); border-radius: 2px; background: var(--surface-2); user-select: none; transition: all .15s; }
 .crit:hover { border-color: var(--border-strong); }
 .crit.on { background: var(--accent-bg); border-color: var(--accent); }
-.crit-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  border: 1px solid var(--border-strong); flex-shrink: 0;
-  transition: all .15s;
-}
+.crit-dot { width: 6px; height: 6px; border-radius: 50%; border: 1px solid var(--border-strong); flex-shrink: 0; transition: all .15s; }
 .crit.on .crit-dot { background: var(--accent); border-color: var(--accent); }
-.crit-lbl {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase;
-  color: var(--text-2); transition: color .15s;
-}
+.crit-lbl { font-family: ui-monospace,'SF Mono',monospace; font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); transition: color .15s; }
 .crit.on .crit-lbl { color: var(--accent); }
-.prompt-toggle {
-  display: flex; align-items: center; gap: 5px;
-  background: none; border: none; cursor: pointer;
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 8.5px; letter-spacing: .1em; text-transform: uppercase;
-  color: var(--text-3); padding: 0; transition: color .15s;
-}
+.prompt-toggle { display: flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer; font-family: ui-monospace,'SF Mono',monospace; font-size: 8.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); padding: 0; transition: color .15s; }
 .prompt-toggle:hover { color: var(--accent); }
-.toggle-arrow { transition: transform .2s; display: inline-block; font-style: normal; }
-.toggle-arrow.open { transform: rotate(90deg); }
 .v-prompt { display: none; }
 .v-prompt.open { display: block; }
 
+/* LOCKED OW BANNER */
+.ow-locked-banner { display: flex; align-items: center; gap: 16px; background: var(--ok-bg); border: .5px solid var(--ok-border); border-radius: 4px; padding: 12px 18px; margin-bottom: 24px; }
+.olb-label { font-family: ui-monospace,'SF Mono',monospace; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--ok-border); }
+.olb-value { font-family: ui-monospace,'SF Mono',monospace; font-size: 16px; font-weight: 700; color: var(--ok-text); font-variant-numeric: tabular-nums; }
+.olb-desc { font-size: 12px; color: var(--ok-text); opacity: .8; }
+
 /* WINNER PHASE */
-.winner-card {
-  background: var(--accent-bg);
-  border: .5px solid var(--accent);
-  border-radius: 4px; padding: 28px 32px; margin-bottom: 28px;
-}
-.winner-eyebrow {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 9px; letter-spacing: .2em; text-transform: uppercase;
-  color: var(--accent); margin-bottom: 8px;
-}
-.winner-variant-letter {
-  font-family: Georgia,'Palatino Linotype',serif;
-  font-size: 64px; font-weight: normal; font-style: italic;
-  color: var(--accent); line-height: 1; margin-bottom: 4px;
-}
-.winner-variant-name {
-  font-size: 13px; color: var(--text-2); margin-bottom: 24px;
-}
+.winner-card { background: var(--accent-bg); border: .5px solid var(--accent); border-radius: 4px; padding: 28px 32px; margin-bottom: 28px; }
+.winner-eyebrow { font-family: ui-monospace,'SF Mono',monospace; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+.winner-variant-letter { font-family: Georgia,'Palatino Linotype',serif; font-size: 64px; font-weight: normal; font-style: italic; color: var(--accent); line-height: 1; margin-bottom: 4px; }
+.winner-variant-name { font-size: 13px; color: var(--text-2); margin-bottom: 24px; }
 .winner-weights { display: flex; gap: 28px; flex-wrap: wrap; }
 .ww { display: flex; flex-direction: column; gap: 3px; }
-.ww-lbl {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 8px; letter-spacing: .16em; text-transform: uppercase; color: var(--text-3);
-}
-.ww-val {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 22px; font-weight: 600; color: var(--accent);
-  font-variant-numeric: tabular-nums; line-height: 1;
-}
+.ww-lbl { font-family: ui-monospace,'SF Mono',monospace; font-size: 8px; letter-spacing: .16em; text-transform: uppercase; color: var(--text-3); }
+.ww-val { font-family: ui-monospace,'SF Mono',monospace; font-size: 22px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1; }
+.ww-val.locked { color: var(--ok-text); }
 .divider { border: none; border-top: .5px solid var(--border); margin: 28px 0; }
 .lock-output { background: var(--prompt-bg); border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
-.lock-output pre {
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 11px; color: var(--prompt-text);
-  padding: 20px 22px; line-height: 1.9;
-  white-space: pre; overflow-x: auto;
-}
-.ok-note {
-  font-size: 12.5px; line-height: 1.65;
-  padding: 14px 18px;
-  background: var(--ok-bg); border: .5px solid var(--ok-border);
-  color: var(--ok-text); border-radius: 4px;
-}
-.no-winner {
-  text-align: center; padding: 60px 20px;
-  color: var(--text-3);
-  font-family: ui-monospace,'SF Mono',monospace;
-  font-size: 11px; letter-spacing: .08em;
-}
-.no-winner strong {
-  display: block; font-family: Georgia,'Palatino Linotype',serif;
-  font-size: 18px; font-weight: normal; color: var(--text-2);
-  margin-bottom: 8px; font-style: italic;
-}
+.lock-output pre { font-family: ui-monospace,'SF Mono',monospace; font-size: 11px; color: var(--prompt-text); padding: 20px 22px; line-height: 1.9; white-space: pre; overflow-x: auto; }
+.ok-note { font-size: 12.5px; line-height: 1.65; padding: 14px 18px; background: var(--ok-bg); border: .5px solid var(--ok-border); color: var(--ok-text); border-radius: 4px; }
+.no-winner { text-align: center; padding: 60px 20px; color: var(--text-3); font-family: ui-monospace,'SF Mono',monospace; font-size: 11px; letter-spacing: .08em; }
+.no-winner strong { display: block; font-family: Georgia,'Palatino Linotype',serif; font-size: 18px; font-weight: normal; color: var(--text-2); margin-bottom: 8px; font-style: italic; }
 
 @media (max-width: 640px) {
   .hdr { padding: 0 18px; }
@@ -409,49 +203,51 @@ body {
   <div class="hdr-top">
     <span class="hdr-eyebrow">Evercrafted</span>
     <span class="hdr-title">Weight Calibration Studio</span>
-    <span class="hdr-badge" id="collectionBadge">The Quiet Hour</span>
+    <span class="hdr-badge">The Quiet Hour</span>
   </div>
   <div class="phase-rail">
     <button class="phase-tab active" data-phase="1" onclick="goPhase(1)">
       <span class="ph-num" id="pn1">1</span>
-      <span class="ph-lbl">Source Prep</span>
+      <span class="ph-lbl">Sources</span>
     </button>
     <button class="phase-tab locked" data-phase="2" onclick="goPhase(2)" id="tab2">
       <span class="ph-num" id="pn2">2</span>
-      <span class="ph-lbl">Run &amp; Score Variants</span>
+      <span class="ph-lbl">Oref Floor</span>
     </button>
     <button class="phase-tab locked" data-phase="3" onclick="goPhase(3)" id="tab3">
       <span class="ph-num" id="pn3">3</span>
-      <span class="ph-lbl">Lock Results</span>
+      <span class="ph-lbl">Full Grid</span>
+    </button>
+    <button class="phase-tab locked" data-phase="4" onclick="goPhase(4)" id="tab4">
+      <span class="ph-num" id="pn4">4</span>
+      <span class="ph-lbl">Lock</span>
     </button>
   </div>
 </div>
 
 <div class="main">
 
-  <!-- PHASE 1: SOURCE PREP -->
+  <!-- PHASE 1: SOURCES -->
   <div class="phase-panel active" id="phase1">
     <div class="sec-head">
       <div class="sec-title">Generate your three reference sources</div>
-      <div class="sec-sub">Before running any product render, you need three source images. Copy each prompt into Midjourney, run it, save the seed, then paste the image URL back here. The tool will assemble all nine calibration variants for you.</div>
+      <div class="sec-sub">Start with the Floral Collage — that's what Phase 2 tests. You can add the Lifestyle Scene and Greens Base URLs now or come back before Phase 3.</div>
     </div>
-
     <div class="sources">
 
-      <!-- SOURCE 1: FLORAL COLLAGE -->
       <div class="src-card">
         <div class="src-card-head">
-          <span class="src-tag">Source 1</span>
+          <span class="src-tag required">Required first</span>
           <span class="src-name">Floral Collage</span>
           <span class="src-param">→ --oref / --ow</span>
         </div>
         <div class="src-body">
-          <div class="src-desc">A handheld-bouquet-style collage of every floral in the collection, photographed clinically so each material is individually readable. This is your Step 0 Material Study Cascade. Run it at low stylize so MJ reads materials, not mood.</div>
-          <div class="src-note">Weight controls material fidelity. Too high (400+): MJ tries to copy the collage shape. Too low (under 80): materials drift toward generic. Target zone: 150–250.</div>
+          <div class="src-desc">Every material in the collection arranged in a clinical cascade — each floral individually readable, no mood, no shadow play. This is your Step 0 Material Study Cascade. Run at <code>--s 30 --style raw</code> so MJ reads materials not mood. Save the seed.</div>
+          <div class="src-note">If any material merges into the mass or disappears, re-run and name it explicitly with a count: "five ivory wax-finish ranunculus blooms clearly individually visible."</div>
           <div class="prompt-block">
             <div class="pb-head">
-              <span class="pb-lbl">Step 0 — Material Study Cascade · --s 30 --style raw</span>
-              <button class="copy-btn" onclick="copyPrompt(this, 'p_source1')">Copy</button>
+              <span class="pb-lbl">Step 0 — Material Study Cascade</span>
+              <button class="copy-btn" onclick="copyPrompt(this,'p_source1')">Copy</button>
             </div>
             <div class="pb-text" id="p_source1">Luxury handcrafted faux botanical The Quiet Hour material cascade, premium artificial silk and polyester florals, asymmetric cascade arrangement 26 to 30 inches, weighted left focal zone, full material hierarchy at maximum, all collection species clearly visible and individually readable — five ivory wax-finish silk ranunculus blooms 4 to 5 inches across fully open with matte wax-finish artificial petal texture, three brass-dusted faux magnolia pods showing brushed brass artificial finish at varying sizes, ivory wax-finish artificial berry cluster stems with matte round berries, deep dark green artificial frosted pine sprays with silver-white frost on needle tips only, frosted artificial eucalyptus sprays with silver-sage finish, single deep burgundy wine velvet ribbon with generous loops and long trailing tail at base showing rich velvet nap — all stems at varying heights and depths with natural overlap, each material individually legible and clearly separated from adjacent materials, premium artificial silk and polyester construction visible throughout, photographed against pale neutral gray seamless background, front-facing 3/4 view, soft even studio lighting --style raw --s 30 --ar 2:3 --v 7 --no fresh flowers, real plants, live botanicals, organic, dew, wilting, wreath form, circular arrangement, illustrated, painted</div>
           </div>
@@ -462,20 +258,19 @@ body {
         </div>
       </div>
 
-      <!-- SOURCE 2: LIFESTYLE SCENE -->
       <div class="src-card">
         <div class="src-card-head">
-          <span class="src-tag">Source 2</span>
+          <span class="src-tag">Needed for Phase 3</span>
           <span class="src-name">Lifestyle Scene</span>
           <span class="src-param">→ --sref / --sw</span>
         </div>
         <div class="src-body">
-          <div class="src-desc">A room, surface, and light environment that captures the collection's atmosphere. No wreaths or botanicals in this image — pure setting. This controls the render's mood and photography style without dictating any physical materials.</div>
-          <div class="src-note">Weight controls atmosphere pull. Too high (200+): the scene's color temperature bleeds into your materials, palette drifts. Too low (under 40): renders look clinical, no sense of place. Target zone: 60–120.</div>
+          <div class="src-desc">A room and light environment that captures the collection atmosphere — no botanicals, no wreaths, pure setting. Controls mood and photography style without dictating materials.</div>
+          <div class="src-note">Too high (200+): the scene's color temperature bleeds into your materials. Target zone: 60–120.</div>
           <div class="prompt-block">
             <div class="pb-head">
-              <span class="pb-lbl">Lifestyle Scene — The Quiet Hour · --s 20 --style raw</span>
-              <button class="copy-btn" onclick="copyPrompt(this, 'p_source2')">Copy</button>
+              <span class="pb-lbl">Lifestyle Scene — The Quiet Hour</span>
+              <button class="copy-btn" onclick="copyPrompt(this,'p_source2')">Copy</button>
             </div>
             <div class="pb-text" id="p_source2">Moody interior vignette, late afternoon winter light filtering through sheer linen curtains, pale gray plaster wall with fine texture, aged brass candlesticks on a weathered oak surface, deep burgundy linen throw folded at corner, cold blue-gold quality of light, long afternoon shadows, atmospheric and still, no objects in foreground, empty surface ready to receive a decorative object, editorial interiors photography, soft natural side lighting, muted and refined --style raw --s 20 --ar 3:4 --v 7 --no plants, flowers, wreaths, botanicals, people, food, clutter, bright colors, warm yellow light, illustrated</div>
           </div>
@@ -486,20 +281,19 @@ body {
         </div>
       </div>
 
-      <!-- SOURCE 3: GREENS BASE -->
       <div class="src-card">
         <div class="src-card-head">
-          <span class="src-tag">Source 3</span>
+          <span class="src-tag">Needed for Phase 3</span>
           <span class="src-name">Greens Base</span>
           <span class="src-param">→ Image Prompt / --iw</span>
         </div>
         <div class="src-body">
-          <div class="src-desc">A plain greenery-only wreath base — all structural stems, no florals, no ribbon, no picks. This anchors the wreath form across products so the shape doesn't drift when oref and sref are pulling in different directions.</div>
-          <div class="src-note">Weight controls form hold. Too high (2.5+): the greenery base dominates, florals get suppressed. Too low (under 1.0): text description alone must hold the form, which can fail on complex compositions. Target zone: 1.0–2.0.</div>
+          <div class="src-desc">A greenery-only wreath base — no florals, no ribbon, no picks. Anchors the wreath form so the shape doesn't drift when oref and sref are pulling in different directions.</div>
+          <div class="src-note">Too high (2.5+): greenery base dominates and suppresses florals. Target zone: 1.0–2.0.</div>
           <div class="prompt-block">
             <div class="pb-head">
-              <span class="pb-lbl">Greens Base — Full Wreath Form · --s 20 --style raw</span>
-              <button class="copy-btn" onclick="copyPrompt(this, 'p_source3')">Copy</button>
+              <span class="pb-lbl">Greens Base — Full Wreath Form</span>
+              <button class="copy-btn" onclick="copyPrompt(this,'p_source3')">Copy</button>
             </div>
             <div class="pb-text" id="p_source3">Luxury faux botanical wreath base, greenery only, no florals, no ribbon, no decorative elements, complete 26-inch full wreath form, deep dark green artificial frosted pine sprays with silver-white frost on needle tips, frosted artificial eucalyptus, natural stem construction with visible wire armature at inner ring, asymmetric formula with heavier density at 8 to 12 o'clock and lighter at 1 to 4 o'clock, full ring with no bare patches, front-facing view against pale gray seamless background, soft even studio lighting, premium artificial construction clearly visible --style raw --s 20 --ar 1:1 --v 7 --no flowers, berries, ribbon, pods, picks, brass, LED, candles, any decorative elements, fresh plants, real botanicals</div>
           </div>
@@ -511,71 +305,86 @@ body {
       </div>
 
     </div>
-
-    <button class="next-btn" id="nextBtn1" disabled onclick="goPhase(2)">
-      Continue to Variants →
-    </button>
+    <button class="next-btn" id="nextBtn1" disabled onclick="goPhase(2)">Find Oref Floor →</button>
   </div>
 
-  <!-- PHASE 2: VARIANTS -->
+  <!-- PHASE 2: OREF FLOOR -->
   <div class="phase-panel" id="phase2">
     <div class="sec-head">
-      <div class="sec-title">Run each variant, then score what comes back</div>
-      <div class="sec-sub">Copy each assembled prompt into Midjourney. After the image generates, return here and check the criteria it passes. The highest score wins. You don't need to run all nine — stop when the winner is clear.</div>
+      <div class="sec-title">Find the minimum --ow that pulls florals through</div>
+      <div class="sec-sub">These three prompts use only the floral collage — no sref, no image prompt. One variable. Run each, look at what comes back, then answer the single question: are the florals clearly readable as individual distinct materials?</div>
     </div>
-    <div class="variant-grid" id="variantGrid"></div>
-    <button class="next-btn" style="margin-top:32px" onclick="goPhase(3)">
-      View Results →
-    </button>
+    <div class="floor-grid" id="floorGrid"></div>
+    <div id="floorResultBanner"></div>
+    <button class="next-btn" style="margin-top:28px" id="nextBtn2" onclick="goPhase(3)">Continue to Full Grid →</button>
   </div>
 
-  <!-- PHASE 3: LOCK RESULTS -->
+  <!-- PHASE 3: FULL GRID -->
   <div class="phase-panel" id="phase3">
     <div class="sec-head">
-      <div class="sec-title">Lock your weight set</div>
-      <div class="sec-sub">Copy the block below into your Project State card. Every product in this collection uses these exact weights from now on.</div>
+      <div class="sec-title">Test atmosphere and form against your locked --ow</div>
+      <div class="sec-sub">Oref weight is locked. Now find the right --sw and --iw balance. Copy each prompt, run it, score the four criteria. Stop when a winner is clear.</div>
     </div>
-    <div id="phase3Content"></div>
+    <div id="owLockedBanner"></div>
+    <div class="variant-grid" id="variantGrid"></div>
+    <button class="next-btn" style="margin-top:32px" onclick="goPhase(4)">View Results →</button>
+  </div>
+
+  <!-- PHASE 4: LOCK -->
+  <div class="phase-panel" id="phase4">
+    <div class="sec-head">
+      <div class="sec-title">Lock your weight set</div>
+      <div class="sec-sub">Copy this block into your Project State card. Every product in this collection uses these exact weights from now on.</div>
+    </div>
+    <div id="phase4Content"></div>
   </div>
 
 </div>
 
 <script>
-// ─── DATA ────────────────────────────────────────────────────────────────────
-
-const VARIANTS = [
-  { id:'A', ow:100,  sw:100, iw:1.0, desc:'All defaults — true baseline' },
-  { id:'B', ow:180,  sw:100, iw:1.0, desc:'Materials lifted, structure and atmosphere at default' },
-  { id:'C', ow:180,  sw:60,  iw:1.0, desc:'Materials lifted, atmosphere contained' },
-  { id:'D', ow:180,  sw:100, iw:1.5, desc:'Materials lifted, structure strengthened' },
-  { id:'E', ow:180,  sw:80,  iw:1.5, desc:'Materials dominant — recommended start ★' },
-  { id:'F', ow:200,  sw:80,  iw:2.0, desc:'Materials dominant, structure heavy' },
-  { id:'G', ow:150,  sw:150, iw:1.0, desc:'Atmosphere dominant' },
-  { id:'H', ow:250,  sw:50,  iw:1.5, desc:'Materials very high, atmosphere minimal' },
-  { id:'I', ow:150,  sw:80,  iw:2.5, desc:'Structure dominant' },
-];
-
-const CRITERIA = [
-  { id:'mat', label:'Material fidelity',  desc:'Can you identify each floral? Are textures right?' },
-  { id:'col', label:'Color accuracy',     desc:'Palette from collage? No temperature drift?' },
-  { id:'atm', label:'Atmosphere',         desc:'Right mood without scene hijacking?' },
-  { id:'frm', label:'Form integrity',     desc:'Correct shape, density, silence arc?' },
-];
+// ─── PROMPTS ─────────────────────────────────────────────────────────────────
 
 const BASE_PROMPT = `Luxury handcrafted faux botanical wreath, premium artificial silk florals, home decor product photography, complete 24-inch circular ring, frosted pine and eucalyptus base covering the full upper arc from 8 through 12 to 4 o'clock, three ivory wax-finish faux ranunculus blooms in the dense upper arc in graduating sizes with primary fully open at 11 o'clock, three brass-dusted faux magnolia pods anchoring at 10, 12, and 2 o'clock, ivory wax-finish artificial berry clusters scattered through the arc, single burgundy velvet ribbon trailing asymmetrically from 10 o'clock down toward 6, warm LED strand glowing softly through the upper arc, lower arc sparse from 5 to 7 with warm grapevine base exposed, complete circular ring fully visible, photographed flat against a pale gray painted wall as if hanging on a front door, front-facing camera angle, soft studio daylight from upper left, 85mm editorial product photography`;
 
-const BASE_NEG = `--no fresh flowers, real plants, live botanicals, organic, dew, wilting, florist, flat lay, overhead shot, bird's eye view, perfectly symmetrical`;
+const BASE_NEG = `--no fresh flowers, real plants, live botanicals, organic, dew, wilting, florist, flat lay, overhead shot, perfectly symmetrical`;
 
-// ─── STATE ───────────────────────────────────────────────────────────────────
+// ─── FLOOR VARIANTS ──────────────────────────────────────────────────────────
 
-const scores = {};
-VARIANTS.forEach(v => {
-  scores[v.id] = { mat: false, col: false, atm: false, frm: false };
-});
+const FLOOR_TESTS = [
+  { id:'F1', ow:280, desc:'Below the render guide default — florals should start coming through' },
+  { id:'F2', ow:380, desc:'Render guide proven value — this should work if collage is readable' },
+  { id:'F3', ow:450, desc:'Hard pull — florals dominant, check for shape distortion' },
+];
+
+const floorScores = { F1: null, F2: null, F3: null }; // null, true, false
+
+// ─── FULL GRID VARIANTS (sw + iw only — ow locked from floor test) ───────────
+
+const GRID_VARIANTS = [
+  { id:'A', sw:100, iw:1.0, desc:'Sref and iw at defaults — baseline' },
+  { id:'B', sw:60,  iw:1.0, desc:'Atmosphere pulled back' },
+  { id:'C', sw:80,  iw:1.0, desc:'Atmosphere moderate, form at default' },
+  { id:'D', sw:100, iw:1.5, desc:'Atmosphere full, structure up' },
+  { id:'E', sw:80,  iw:1.5, desc:'Balanced — recommended start ★' },
+  { id:'F', sw:60,  iw:1.5, desc:'Atmosphere minimal, structure up' },
+  { id:'G', sw:150, iw:1.0, desc:'Atmosphere dominant' },
+  { id:'H', sw:80,  iw:2.0, desc:'Structure heavy' },
+  { id:'I', sw:50,  iw:2.0, desc:'Atmosphere minimal, structure dominant' },
+];
+
+const CRITERIA = [
+  { id:'mat', label:'Material fidelity',  desc:'Each floral distinct? Textures right?' },
+  { id:'col', label:'Color accuracy',     desc:'Palette correct? No temperature drift?' },
+  { id:'atm', label:'Atmosphere',         desc:'Right mood? Not hijacked by scene?' },
+  { id:'frm', label:'Form integrity',     desc:'Correct shape, density, silence arc?' },
+];
+
+const gridScores = {};
+GRID_VARIANTS.forEach(v => { gridScores[v.id] = { mat:false, col:false, atm:false, frm:false }; });
 
 let currentPhase = 1;
 
-// ─── SOURCES ─────────────────────────────────────────────────────────────────
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
 
 function getUrls() {
   return {
@@ -585,91 +394,206 @@ function getUrls() {
   };
 }
 
-function buildPrompt(v) {
-  const u = getUrls();
-  const oref_url = u.oref || '[PASTE-OREF-URL]';
-  const sref_url = u.sref || '[PASTE-SREF-URL]';
-  const iref_url = u.iref || '[PASTE-IREF-URL]';
-  return `${iref_url} ${BASE_PROMPT} --oref ${oref_url} --ow ${v.ow} --sref ${sref_url} --sw ${v.sw} --iw ${v.iw} --style raw --s 50 --ar 1:1 --v 7 ${BASE_NEG}`;
+function getLockedOW() {
+  // First passing floor test = locked value
+  for (const t of FLOOR_TESTS) {
+    if (floorScores[t.id] === true) return t.ow;
+  }
+  // If none passed, use highest tested
+  return FLOOR_TESTS[FLOOR_TESTS.length - 1].ow;
 }
+
+function buildFloorPrompt(t) {
+  const oref = getUrls().oref || '[PASTE-OREF-URL]';
+  return `${BASE_PROMPT} --oref ${oref} --ow ${t.ow} --style raw --s 50 --ar 1:1 --v 7 ${BASE_NEG}`;
+}
+
+function buildGridPrompt(v) {
+  const u = getUrls();
+  const oref = u.oref || '[PASTE-OREF-URL]';
+  const sref = u.sref || '[PASTE-SREF-URL]';
+  const iref = u.iref || '[PASTE-IREF-URL]';
+  const ow = getLockedOW();
+  return `${iref} ${BASE_PROMPT} --oref ${oref} --ow ${ow} --sref ${sref} --sw ${v.sw} --iw ${v.iw} --style raw --s 50 --ar 1:1 --v 7 ${BASE_NEG}`;
+}
+
+// ─── URL CHANGE ──────────────────────────────────────────────────────────────
 
 function onUrlChange() {
   const u = getUrls();
-  document.getElementById('iref_url').classList.toggle('has-url', !!u.iref);
-  document.getElementById('oref_url').classList.toggle('has-url', !!u.oref);
-  document.getElementById('sref_url').classList.toggle('has-url', !!u.sref);
-  const allFilled = u.oref && u.sref && u.iref;
-  document.getElementById('nextBtn1').disabled = !allFilled;
-  // update prompt displays if phase 2 already rendered
-  VARIANTS.forEach(v => {
+  ['oref','sref','iref'].forEach(k => {
+    const el = document.getElementById(k + '_url');
+    if (el) el.classList.toggle('has-url', !!u[k]);
+  });
+  document.getElementById('nextBtn1').disabled = !u.oref;
+  // refresh floor prompts if rendered
+  FLOOR_TESTS.forEach(t => {
+    const el = document.getElementById('fp_' + t.id);
+    if (el) el.textContent = buildFloorPrompt(t);
+  });
+  // refresh grid prompts if rendered
+  GRID_VARIANTS.forEach(v => {
     const el = document.getElementById('vp_' + v.id);
-    if (el) el.textContent = buildPrompt(v);
+    if (el) el.textContent = buildGridPrompt(v);
   });
 }
 
-// ─── PHASE NAV ────────────────────────────────────────────────────────────────
+// ─── PHASE NAV ───────────────────────────────────────────────────────────────
 
 function goPhase(n) {
-  if (n === 2 && getUrls().oref === '' && getUrls().sref === '' && getUrls().iref === '') return;
   currentPhase = n;
   document.querySelectorAll('.phase-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('phase' + n).classList.add('active');
   updatePhaseTabs();
-  if (n === 2) renderVariants();
-  if (n === 3) renderPhase3();
+  if (n === 2) renderFloorGrid();
+  if (n === 3) renderFullGrid();
+  if (n === 4) renderLock();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function updatePhaseTabs() {
-  [1,2,3].forEach(n => {
+  [1,2,3,4].forEach(n => {
     const tab = document.querySelector(`.phase-tab[data-phase="${n}"]`);
     const num = document.getElementById('pn' + n);
+    if (!tab) return;
     tab.classList.remove('active','done','locked');
-    if (n < currentPhase) {
-      tab.classList.add('done');
-      num.textContent = '✓';
-    } else if (n === currentPhase) {
-      tab.classList.add('active');
-      num.textContent = n;
-    } else {
-      tab.classList.add('locked');
-      num.textContent = n;
-    }
+    if (n < currentPhase) { tab.classList.add('done'); num.textContent = '✓'; }
+    else if (n === currentPhase) { tab.classList.add('active'); num.textContent = n; }
+    else { tab.classList.add('locked'); num.textContent = n; }
   });
 }
 
-// ─── RENDER VARIANTS ─────────────────────────────────────────────────────────
+// ─── FLOOR GRID ──────────────────────────────────────────────────────────────
 
-function getScore(id) {
-  return Object.values(scores[id]).filter(Boolean).length;
+function renderFloorGrid() {
+  const grid = document.getElementById('floorGrid');
+  grid.innerHTML = '';
+  FLOOR_TESTS.forEach(t => {
+    const pass = floorScores[t.id];
+    const card = document.createElement('div');
+    card.className = 'floor-card' + (pass === true ? ' pass' : pass === false ? ' fail' : '');
+    card.id = 'fc_' + t.id;
+    card.innerHTML = `
+      <div class="floor-card-top">
+        <div class="floor-ow">
+          <div class="floor-ow-val">${t.ow}</div>
+          <div class="floor-ow-lbl">--ow</div>
+        </div>
+        <div class="floor-meta">
+          <div class="floor-desc">${t.desc}</div>
+          <div class="floor-question">Are the florals coming through as distinct individual materials?</div>
+          <div class="pass-fail-row">
+            <div class="pf-btn ${pass === true ? 'sel-pass' : ''}" onclick="setFloor('${t.id}', true)">
+              ✓ Yes — readable
+            </div>
+            <div class="pf-btn ${pass === false ? 'sel-fail' : ''}" onclick="setFloor('${t.id}', false)">
+              ✗ No — still merging
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="floor-card-body">
+        <button class="floor-prompt-toggle" onclick="toggleFloorPrompt('${t.id}')">
+          <span class="toggle-arrow" id="fta_${t.id}">▶</span>
+          Show prompt
+        </button>
+        <div class="fp-wrap" id="fpw_${t.id}">
+          <div class="prompt-block" style="margin-top:8px">
+            <div class="pb-head">
+              <span class="pb-lbl">--ow ${t.ow} · oref only · no sref · no image prompt</span>
+              <button class="copy-btn" onclick="copyPrompt(this,'fp_${t.id}')">Copy</button>
+            </div>
+            <div class="pb-text" id="fp_${t.id}">${buildFloorPrompt(t)}</div>
+          </div>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+  updateFloorBanner();
 }
 
-function getWinner() {
-  let max = -1;
-  let winners = [];
-  VARIANTS.forEach(v => {
-    const s = getScore(v.id);
+function setFloor(id, val) {
+  floorScores[id] = val;
+  // re-render floor grid
+  renderFloorGrid();
+}
+
+function updateFloorBanner() {
+  const banner = document.getElementById('floorResultBanner');
+  const lockedTest = FLOOR_TESTS.find(t => floorScores[t.id] === true);
+  const allFailed = FLOOR_TESTS.every(t => floorScores[t.id] === false);
+
+  if (lockedTest) {
+    banner.innerHTML = `<div class="floor-result found" style="margin-top:0">
+      <div class="fr-label">Oref floor found</div>
+      <div class="fr-value">--ow ${lockedTest.ow} is your minimum. This locks in for all 9 variants.</div>
+    </div>`;
+  } else if (allFailed) {
+    banner.innerHTML = `<div class="floor-result not-found" style="margin-top:0">
+      <div class="fr-label">Florals not pulling through at any tested weight</div>
+      <div class="fr-value">The collage itself may be too merged or stylized. Re-generate the cascade at --s 20 or lower and ensure every material has clear space around it, then re-run these three tests.</div>
+    </div>`;
+  } else {
+    banner.innerHTML = '';
+  }
+}
+
+function toggleFloorPrompt(id) {
+  const el = document.getElementById('fpw_' + id);
+  const arrow = document.getElementById('fta_' + id);
+  el.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+// ─── FULL GRID ────────────────────────────────────────────────────────────────
+
+function getGridScore(id) { return Object.values(gridScores[id]).filter(Boolean).length; }
+
+function getGridWinner() {
+  let max = -1, winners = [];
+  GRID_VARIANTS.forEach(v => {
+    const s = getGridScore(v.id);
     if (s > max) { max = s; winners = [v.id]; }
     else if (s === max && s > 0) winners.push(v.id);
   });
   return max === 0 ? [] : winners;
 }
 
-function renderVariants() {
+function renderFullGrid() {
+  const ow = getLockedOW();
+  // Banner
+  document.getElementById('owLockedBanner').innerHTML = `
+    <div class="ow-locked-banner">
+      <div>
+        <div class="olb-label">Locked oref weight</div>
+        <div class="olb-value">--ow ${ow}</div>
+      </div>
+      <div class="olb-desc">All 9 variants use this --ow. You're now testing --sw (atmosphere) and --iw (form) only.</div>
+    </div>`;
+
   const grid = document.getElementById('variantGrid');
   grid.innerHTML = '';
-  VARIANTS.forEach(v => {
-    const winners = getWinner();
+  const u = getUrls();
+  const missingUrls = !u.sref || !u.iref;
+
+  if (missingUrls) {
+    grid.innerHTML = `<div class="no-winner">
+      <strong>Lifestyle scene and greens base URLs needed</strong>
+      Go back to Phase 1 and paste those two URLs before running the full grid.
+    </div>`;
+    return;
+  }
+
+  GRID_VARIANTS.forEach(v => {
+    const winners = getGridWinner();
     const isWinner = winners.includes(v.id);
-    const sc = getScore(v.id);
+    const sc = getGridScore(v.id);
     const card = document.createElement('div');
     card.className = 'v-card' + (isWinner ? ' winner' : '');
     card.id = 'vc_' + v.id;
 
     const criteriaHtml = CRITERIA.map(c => `
-      <div class="crit ${scores[v.id][c.id] ? 'on' : ''}"
-           onclick="toggleCrit('${v.id}','${c.id}')"
-           title="${c.desc}">
+      <div class="crit ${gridScores[v.id][c.id] ? 'on' : ''}" onclick="toggleCrit('${v.id}','${c.id}')" title="${c.desc}">
         <div class="crit-dot"></div>
         <span class="crit-lbl">${c.label}</span>
       </div>`).join('');
@@ -680,7 +604,7 @@ function renderVariants() {
         <div class="v-meta">
           <div class="v-desc">${v.desc}</div>
           <div class="v-weights">
-            <span class="wt">--ow <b>${v.ow}</b></span>
+            <span class="wt locked-ow">--ow <b>${ow}</b></span>
             <span class="wt">--sw <b>${v.sw}</b></span>
             <span class="wt">--iw <b>${v.iw}</b></span>
           </div>
@@ -693,17 +617,17 @@ function renderVariants() {
       <div class="v-card-body">
         <div class="criteria-row">${criteriaHtml}</div>
         <div>
-          <button class="prompt-toggle" onclick="togglePrompt('${v.id}')">
+          <button class="prompt-toggle" onclick="toggleGridPrompt('${v.id}')">
             <span class="toggle-arrow" id="ta_${v.id}">▶</span>
             Show assembled prompt
           </button>
           <div class="v-prompt" id="vpt_${v.id}">
             <div class="prompt-block" style="margin-top:8px">
               <div class="pb-head">
-                <span class="pb-lbl">Variant ${v.id} · --ow ${v.ow} --sw ${v.sw} --iw ${v.iw}</span>
+                <span class="pb-lbl">Variant ${v.id} · --ow ${ow} --sw ${v.sw} --iw ${v.iw}</span>
                 <button class="copy-btn" onclick="copyPrompt(this,'vp_${v.id}')">Copy</button>
               </div>
-              <div class="pb-text" id="vp_${v.id}">${buildPrompt(v)}</div>
+              <div class="pb-text" id="vp_${v.id}">${buildGridPrompt(v)}</div>
             </div>
           </div>
         </div>
@@ -713,63 +637,53 @@ function renderVariants() {
 }
 
 function toggleCrit(varId, critId) {
-  scores[varId][critId] = !scores[varId][critId];
-  // update score display
-  const sc = getScore(varId);
-  document.getElementById('vsn_' + varId).textContent = sc;
-  // update chip state
-  const winners = getWinner();
-  VARIANTS.forEach(v => {
+  gridScores[varId][critId] = !gridScores[varId][critId];
+  const winners = getGridWinner();
+  GRID_VARIANTS.forEach(v => {
     const card = document.getElementById('vc_' + v.id);
     if (!card) return;
     card.classList.toggle('winner', winners.includes(v.id));
-    // refresh criteria chips
-    CRITERIA.forEach(c => {
+    CRITERIA.forEach((c, idx) => {
       const chips = card.querySelectorAll('.crit');
-      const idx = CRITERIA.indexOf(c);
-      if (chips[idx]) chips[idx].classList.toggle('on', scores[v.id][c.id]);
+      if (chips[idx]) chips[idx].classList.toggle('on', gridScores[v.id][c.id]);
     });
-    document.getElementById('vsn_' + v.id).textContent = getScore(v.id);
+    document.getElementById('vsn_' + v.id).textContent = getGridScore(v.id);
   });
 }
 
-function togglePrompt(id) {
-  const el = document.getElementById('vpt_' + id);
-  const arrow = document.getElementById('ta_' + id);
-  el.classList.toggle('open');
-  arrow.classList.toggle('open');
+function toggleGridPrompt(id) {
+  document.getElementById('vpt_' + id).classList.toggle('open');
+  document.getElementById('ta_' + id).classList.toggle('open');
 }
 
-// ─── PHASE 3 ─────────────────────────────────────────────────────────────────
+// ─── LOCK ─────────────────────────────────────────────────────────────────────
 
-function renderPhase3() {
-  const winners = getWinner();
-  const el = document.getElementById('phase3Content');
+function renderLock() {
+  const winners = getGridWinner();
+  const el = document.getElementById('phase4Content');
+  const ow = getLockedOW();
 
   if (winners.length === 0) {
-    el.innerHTML = `<div class="no-winner">
-      <strong>No scores recorded yet</strong>
-      Go back to Phase 2 and score your variants first.
-    </div>`;
+    el.innerHTML = `<div class="no-winner"><strong>No scores recorded yet</strong>Go back to Phase 3 and score your variants first.</div>`;
     return;
   }
 
-  const w = VARIANTS.find(v => v.id === winners[0]);
-  const sc = getScore(w.id);
+  const w = GRID_VARIANTS.find(v => v.id === winners[0]);
+  const sc = getGridScore(w.id);
   const today = new Date().toISOString().split('T')[0];
 
-  const lockBlock = `LOCKED RENDER PARAMETERS — The Quiet Hour
+  const lockBlock =
+`LOCKED RENDER PARAMETERS — The Quiet Hour
 ────────────────────────────────────────
   --v 7  --style raw  --s 50  --ar 1:1
 
-  --ow ${w.ow.toString().padEnd(6)} → floral collage  (--oref)
-  --sw ${w.sw.toString().padEnd(6)} → lifestyle scene (--sref)
-  --iw ${w.iw.toString().padEnd(6)} → greens base     (image prompt)
+  --ow ${String(ow).padEnd(6)} → floral collage  (--oref)
+  --sw ${String(w.sw).padEnd(6)} → lifestyle scene (--sref)
+  --iw ${String(w.iw).padEnd(6)} → greens base     (image prompt)
 
-  Calibration test: Hero Wreath
-  Winning variant:  ${w.id} — ${w.desc}
-  Score:            ${sc}/4
-  Date:             ${today}
+  Oref floor test: passed at --ow ${ow}
+  Full grid winner: Variant ${w.id} — ${w.desc}
+  Score: ${sc}/4   Date: ${today}
 
   Source seeds:
     Floral collage seed:  [ADD SEED]
@@ -777,49 +691,33 @@ function renderPhase3() {
     Greens base seed:     [ADD SEED]
 
 All 8 products use these weights. Do not adjust per-product
-unless a product fails. See troubleshooting in the protocol.`;
+unless a product fails. See weight-calibration-protocol.md.`;
 
   el.innerHTML = `
     <div class="winner-card">
-      <div class="winner-eyebrow">Winning Variant</div>
+      <div class="winner-eyebrow">Winning Combination</div>
       <div class="winner-variant-letter">${w.id}</div>
       <div class="winner-variant-name">${w.desc}</div>
       <div class="winner-weights">
-        <div class="ww">
-          <div class="ww-lbl">Oref Weight</div>
-          <div class="ww-val">--ow ${w.ow}</div>
-        </div>
-        <div class="ww">
-          <div class="ww-lbl">Sref Weight</div>
-          <div class="ww-val">--sw ${w.sw}</div>
-        </div>
-        <div class="ww">
-          <div class="ww-lbl">Image Weight</div>
-          <div class="ww-val">--iw ${w.iw}</div>
-        </div>
-        <div class="ww">
-          <div class="ww-lbl">Score</div>
-          <div class="ww-val">${sc} / 4</div>
-        </div>
+        <div class="ww"><div class="ww-lbl">Oref Weight</div><div class="ww-val locked">--ow ${ow}</div></div>
+        <div class="ww"><div class="ww-lbl">Sref Weight</div><div class="ww-val">--sw ${w.sw}</div></div>
+        <div class="ww"><div class="ww-lbl">Image Weight</div><div class="ww-val">--iw ${w.iw}</div></div>
+        <div class="ww"><div class="ww-lbl">Score</div><div class="ww-val">${sc} / 4</div></div>
       </div>
     </div>
-
     <hr class="divider">
-
-    <div class="sec-title" style="font-size:18px;margin-bottom:16px">Project State block — paste this into your card</div>
+    <div class="sec-title" style="font-size:18px;margin-bottom:16px">Paste into EVERCRAFTED_PROJECT_STATE.md</div>
     <div class="lock-output">
       <div class="pb-head">
-        <span class="pb-lbl">EVERCRAFTED_PROJECT_STATE.md — LOCKED RENDER PARAMETERS</span>
+        <span class="pb-lbl">LOCKED RENDER PARAMETERS block</span>
         <button class="copy-btn" onclick="copyPrompt(this,'lockBlock')">Copy</button>
       </div>
       <pre id="lockBlock">${lockBlock}</pre>
     </div>
-    <div class="ok-note">
-      Add the three source seeds before you close the session. Seeds are in the Midjourney image URL after <code>seed=</code>, or in the envelope icon on the image. These three seeds are your entire calibration record — if you need to re-generate a source for any reason, the seed recovers it exactly.
-    </div>`;
+    <div class="ok-note">Add the three source seeds before closing the session. The seed is in the MJ envelope icon on each image. These seeds are your entire calibration record — they recover each source image exactly if you ever need to re-generate.</div>`;
 }
 
-// ─── COPY ────────────────────────────────────────────────────────────────────
+// ─── COPY ─────────────────────────────────────────────────────────────────────
 
 function copyPrompt(btn, id) {
   const text = document.getElementById(id).textContent;
@@ -833,9 +731,6 @@ function copyPrompt(btn, id) {
   document.body.removeChild(ta);
   btn.textContent = 'Copied';
   btn.classList.add('ok');
-  setTimeout(() => {
-    btn.textContent = 'Copy';
-    btn.classList.remove('ok');
-  }, 1800);
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 1800);
 }
 </script>
