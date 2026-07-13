@@ -562,9 +562,9 @@ const CRITERIA = [
   { id:'frm', label:'Form integrity',     desc:'Correct shape, density, silence arc?' },
 ];
 
-const BASE_PROMPT = `Luxury handcrafted faux botanical centerpiece ring, premium artificial silk florals, home decor product photography, complete 14-inch circular ring lying flat on white linen with its center hole open and unobstructed, frosted pine and eucalyptus radial base, four ivory wax-finish faux ranunculus blooms distributed evenly at 12, 3, 6, and 9 o'clock positions on the ring itself, brass-dusted faux magnolia pod at 12 o'clock, ivory wax-finish berry clusters scattered through the arc, LED strand warm glow around the full ring, three ivory pillar candles of three different graduated heights standing upright on the table surface inside the open center hole of the ring with the ring encircling them like a collar, tallest candle at back center shortest at front, candles rising clearly above the ring height and visibly separate from the greenery not embedded in the ring not on top of the ring, photographed 3/4 overhead on white linen, soft studio daylight upper left, 85mm editorial product photography`;
+const BASE_PROMPT = `Luxury handcrafted faux botanical wreath, premium artificial silk florals, home decor product photography, complete 24-inch circular ring, frosted pine and eucalyptus base covering the full upper arc from 8 through 12 to 4 o'clock, three ivory wax-finish faux ranunculus blooms in the dense upper arc in graduating sizes with primary fully open at 11 o'clock, three brass-dusted faux magnolia pods anchoring at 10, 12, and 2 o'clock, ivory wax-finish artificial berry clusters scattered through the arc, single burgundy velvet ribbon trailing asymmetrically from 10 o'clock down toward 6, warm LED strand glowing softly through the upper arc, lower arc sparse from 5 to 7 with warm grapevine base exposed, complete circular ring fully visible, photographed flat against a pale gray painted wall as if hanging on a front door, front-facing camera angle, soft studio daylight from upper left, 85mm editorial product photography`;
 
-const BASE_NEG = `--no fresh flowers, real plants, live botanicals, organic, dew, wilting, florist, gathered stems, candles on ring, candles in greenery, advent wreath, four candles`;
+const BASE_NEG = `--no fresh flowers, real plants, live botanicals, organic, dew, wilting, florist, flat lay, overhead shot, bird's eye view, perfectly symmetrical`;
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 
@@ -766,7 +766,7 @@ function renderPhase3() {
   --sw ${w.sw.toString().padEnd(6)} → lifestyle scene (--sref)
   --iw ${w.iw.toString().padEnd(6)} → greens base     (image prompt)
 
-  Calibration test: Tablescape Ring
+  Calibration test: Hero Wreath
   Winning variant:  ${w.id} — ${w.desc}
   Score:            ${sc}/4
   Date:             ${today}
