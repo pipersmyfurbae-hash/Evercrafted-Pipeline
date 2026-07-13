@@ -823,13 +823,19 @@ unless a product fails. See troubleshooting in the protocol.`;
 
 function copyPrompt(btn, id) {
   const text = document.getElementById(id).textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    btn.textContent = 'Copied';
-    btn.classList.add('ok');
-    setTimeout(() => {
-      btn.textContent = 'Copy';
-      btn.classList.remove('ok');
-    }, 1800);
-  });
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  btn.textContent = 'Copied';
+  btn.classList.add('ok');
+  setTimeout(() => {
+    btn.textContent = 'Copy';
+    btn.classList.remove('ok');
+  }, 1800);
 }
 </script>
