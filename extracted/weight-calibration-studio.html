@@ -317,6 +317,59 @@ body {
   border-radius: 0 2px 2px 0;
 }
 
+/* ── UPLOAD ZONE ──────────────────────────────────────────────── */
+.upload-zone {
+  border: 1px dashed var(--border-s);
+  border-radius: 3px;
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 24px 16px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  min-height: 100px;
+}
+.upload-zone:hover, .upload-zone.drag { border-color: var(--brass); background: var(--brass-bg); }
+.upload-icon { font-size: 22px; opacity: .4; }
+.upload-hint {
+  font-family: ui-monospace, monospace;
+  font-size: 8.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-align: center;
+  line-height: 1.6;
+}
+.render-preview {
+  width: 100%;
+  border-radius: 3px;
+  display: block;
+  cursor: pointer;
+}
+.preview-wrap {
+  position: relative;
+}
+.preview-clear {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--surface);
+  border: .5px solid var(--border);
+  border-radius: 2px;
+  font-family: ui-monospace, monospace;
+  font-size: 7.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all .12s;
+}
+.preview-clear:hover { border-color: var(--brass); color: var(--brass); }
+
 /* ── RUBRIC ───────────────────────────────────────────────────── */
 .rubric {
   display: grid;
@@ -829,7 +882,20 @@ function renderGrid(){
         </div>
       </div>
       <div class="v-body">
-        <div class="criteria-row">${crits}</div>
+        <input type="file" id="uf_${v.id}" accept="image/*" style="display:none" onchange="loadImg('${v.id}',this)">
+        <div class="upload-zone" id="uz_${v.id}"
+          onclick="document.getElementById('uf_${v.id}').click()"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="event.preventDefault();this.classList.remove('drag');loadImgFile('${v.id}',event.dataTransfer.files[0])">
+          <div class="upload-icon">↑</div>
+          <div class="upload-hint">Drop MJ screenshot here<br>or click to upload</div>
+        </div>
+        <div class="preview-wrap" id="pw_${v.id}" style="display:none">
+          <img class="render-preview" id="rp_${v.id}" src="">
+          <button class="preview-clear" onclick="clearImg('${v.id}')">Remove</button>
+        </div>
+        <div class="criteria-row" id="cr_${v.id}" style="opacity:.4;pointer-events:none">${crits}</div>
         <button class="show-prompt-btn" onclick="togglePrompt('${v.id}')">
           <span class="arr" id="arr_${v.id}">▶</span> Show prompt
         </button>
@@ -845,6 +911,34 @@ function renderGrid(){
       </div>`;
     grid.appendChild(card);
   });
+}
+
+function loadImg(vid, input){
+  if(input.files[0]) loadImgFile(vid, input.files[0]);
+}
+
+function loadImgFile(vid, file){
+  if(!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('rp_'+vid).src = e.target.result;
+    document.getElementById('uz_'+vid).style.display = 'none';
+    document.getElementById('pw_'+vid).style.display = 'block';
+    const cr = document.getElementById('cr_'+vid);
+    cr.style.opacity = '1';
+    cr.style.pointerEvents = 'auto';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImg(vid){
+  document.getElementById('rp_'+vid).src = '';
+  document.getElementById('uz_'+vid).style.display = 'flex';
+  document.getElementById('pw_'+vid).style.display = 'none';
+  document.getElementById('uf_'+vid).value = '';
+  const cr = document.getElementById('cr_'+vid);
+  cr.style.opacity = '.4';
+  cr.style.pointerEvents = 'none';
 }
 
 function toggle(vid, cid){
