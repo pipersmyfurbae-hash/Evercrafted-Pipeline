@@ -9,7 +9,7 @@
 
 **Collection identity:** Gilded Silence atmosphere archetype
 **Palette:** Aged Brass #B08D45 · Deep Pine #1F3326 · Ivory Wax #F0E8D8 · Burgundy Wine #5C1A2E · Frost Silver #B8C4BE
-**Materials:** Ivory wax-finish silk ranunculus · Brass-dusted magnolia pods · Frosted pine · Warm LED strand · Burgundy velvet ribbon
+**Materials:** Ivory wax-finish silk ranunculus · Eucalyptus pod sprays (98898.GR) · Deep burgundy berry stems (95482.BU) · Frosted pine · Warm LED strand · Burgundy velvet ribbon
 
 ---
 
@@ -40,7 +40,7 @@
 ## WHAT'S IN PROGRESS
 
 - Mantel Garland Phase 3: Testing off-center bow, single sref (ranunculus only), --s 50, pine color corrected
-- Key fix applied: --sref [RANUNCULUS-URL] --sw 200 to protect ranunculus when orefing magnolia pods
+- Key fix applied: --sref [RANUNCULUS-URL] --sw 200 to protect ranunculus when orefing eucalyptus pod sprays
 - Bow issue: MJ defaulting to symmetrical — use Editor region or --iw 1.8
 
 ---
